@@ -11,6 +11,9 @@ import {
   File,
   ChevronRight,
   History,
+  X,
+  PanelLeftClose,
+  PanelLeft,
 } from "lucide-react";
 import {
   DndContext,
@@ -40,6 +43,7 @@ import {
   SidebarRail,
   SidebarGroupLabel,
   SidebarGroup,
+  useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -47,6 +51,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { GithubStar } from "@/components/github-star";
 import type { MenuConfig, MenuGroup } from "@/types";
@@ -55,7 +60,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { useMenuContext } from "@/contexts/menu-context";
+import { useMenuStore } from "@/store/menu-store";
 
 // 可拖拽的菜单项组件
 function DraggableMenuItem({
@@ -268,19 +273,22 @@ function DraggableMenuGroup({
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
   const pathname = usePathname();
-  const {
-    menus,
-    menuGroups,
-    selectedMenuId,
-    setSelectedMenuId,
-    createMenu,
-    createGroup,
-    deleteMenu,
-    renameMenu,
-    deleteGroup,
-    renameGroup,
-    handleMenuDragEnd,
-  } = useMenuContext();
+  const { setOpen, open } = useSidebar();
+
+  // 使用 zustand store
+  const menus = useMenuStore((state) => state.menus);
+  const menuGroups = useMenuStore((state) => state.menuGroups);
+  const selectedMenuId = useMenuStore((state) => state.selectedMenuId);
+  const recentItems = useMenuStore((state) => state.recentItems);
+  const setSelectedMenuId = useMenuStore((state) => state.setSelectedMenuId);
+  const createMenu = useMenuStore((state) => state.createMenu);
+  const createGroup = useMenuStore((state) => state.createGroup);
+  const deleteMenu = useMenuStore((state) => state.deleteMenu);
+  const renameMenu = useMenuStore((state) => state.renameMenu);
+  const deleteGroup = useMenuStore((state) => state.deleteGroup);
+  const renameGroup = useMenuStore((state) => state.renameGroup);
+  const handleMenuDragEnd = useMenuStore((state) => state.handleMenuDragEnd);
+  const clearRecent = useMenuStore((state) => state.clearRecent);
 
   const [openGroups, setOpenGroups] = React.useState<string[]>([]);
 
@@ -320,6 +328,28 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     router.push(`/menu/${menuId}`);
   };
 
+  // 重命名菜单（带输入框）
+  const handleRenameMenu = (menuId: string) => {
+    const menu = menus.find((m) => m.id === menuId);
+    if (!menu) return;
+
+    const newName = prompt("请输入新的菜单名称：", menu.name);
+    if (newName && newName.trim()) {
+      renameMenu(menuId, newName.trim());
+    }
+  };
+
+  // 重命名菜单组（带输入框）
+  const handleRenameGroup = (groupId: string) => {
+    const group = menuGroups.find((g) => g.id === groupId);
+    if (!group) return;
+
+    const newName = prompt("请输入新的菜单组名称：", group.name);
+    if (newName && newName.trim()) {
+      renameGroup(groupId, newName.trim());
+    }
+  };
+
   // 获取未分组的菜单（按 order 排序）
   const ungroupedMenus = menus
     .filter((menu) => !menu.groupId)
@@ -333,6 +363,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
   // 获取排序后的菜单组
   const sortedGroups = [...menuGroups].sort((a, b) => a.order - b.order);
+
+  // 切换侧边栏展开/收起
+  const toggleSidebar = () => {
+    setOpen(!open);
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
@@ -370,10 +406,49 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-              <SidebarMenuButton tooltip="最近使用">
-                <History className="h-4 w-4 shrink-0" />
-                <span className="truncate">最近使用</span>
-              </SidebarMenuButton>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <SidebarMenuButton tooltip="最近使用">
+                    <History className="h-4 w-4 shrink-0" />
+                    <span className="truncate">最近使用</span>
+                    {recentItems.length > 0 && (
+                      <span className="ml-auto text-xs text-muted-foreground">
+                        {recentItems.length}
+                      </span>
+                    )}
+                  </SidebarMenuButton>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-64">
+                  {recentItems.length === 0 ? (
+                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                      暂无最近打开的菜单
+                    </div>
+                  ) : (
+                    <>
+                      {recentItems.map((item) => (
+                        <DropdownMenuItem
+                          key={item.menuId}
+                          onClick={() => router.push(`/menu/${item.menuId}`)}
+                          className="cursor-pointer"
+                        >
+                          <File className="h-4 w-4 mr-2" />
+                          <span className="flex-1 truncate">
+                            {item.menuName}
+                          </span>
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        onClick={clearRecent}
+                        className="text-destructive"
+                      >
+                        <X className="h-4 w-4 mr-2" />
+                        清空历史记录
+                      </DropdownMenuItem>
+                    </>
+                  )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton tooltip="模板库">
@@ -444,9 +519,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                           onToggle={() => toggleGroup(group.id)}
                           onCreateMenu={handleCreateMenu}
                           onDeleteMenu={deleteMenu}
-                          onRenameMenu={renameMenu}
+                          onRenameMenu={handleRenameMenu}
                           onDeleteGroup={deleteGroup}
-                          onRenameGroup={renameGroup}
+                          onRenameGroup={handleRenameGroup}
                         />
                       );
                     })}
@@ -463,7 +538,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         menu={menu}
                         isActive={selectedMenuId === menu.id}
                         onDelete={deleteMenu}
-                        onRename={renameMenu}
+                        onRename={handleRenameMenu}
                       />
                     ))}
                   </SortableContext>
@@ -490,10 +565,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <Settings className="h-4 w-4" />
             </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-full shrink-0"
+              onClick={toggleSidebar}
+              title="收起侧边栏"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </Button>
           </div>
         </div>
+
         {/* 收起状态 */}
-        <div className="hidden group-data-[collapsible=icon]:flex justify-center py-2">
+        <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center py-2 gap-2">
           <Button
             variant="ghost"
             size="icon"
@@ -502,6 +587,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             title="设置"
           >
             <Settings className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 rounded-full"
+            onClick={toggleSidebar}
+            title="展开侧边栏"
+          >
+            <PanelLeft className="h-4 w-4" />
           </Button>
         </div>
       </SidebarFooter>

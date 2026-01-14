@@ -3,11 +3,11 @@
 import { useRouter } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import WelcomePage from "@/components/welcome-page";
-import { useMenuContext } from "@/contexts/menu-context";
+import { useMenuStore } from "@/store/menu-store";
 
 export default function Home() {
   const router = useRouter();
-  const { createMenu } = useMenuContext();
+  const createMenu = useMenuStore((state) => state.createMenu);
 
   // 创建空白菜单
   const handleCreateBlank = () => {
