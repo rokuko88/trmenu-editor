@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 
 // 配置 GitHub 仓库信息
-// TODO: 替换为实际的 GitHub 仓库地址
-const GITHUB_REPO = "your-org/trmenu-editor";
+const GITHUB_REPO = "rokuko88/trmenu-editor";
+
 const GITHUB_URL = `https://github.com/${GITHUB_REPO}`;
 
 export function GithubStar() {
@@ -14,12 +14,6 @@ export function GithubStar() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 只在配置了真实仓库时才获取 star 数
-    if (GITHUB_REPO === "your-org/trmenu-editor") {
-      setLoading(false);
-      return;
-    }
-
     // 获取 GitHub star 数
     fetch(`https://api.github.com/repos/${GITHUB_REPO}`)
       .then((res) => {
