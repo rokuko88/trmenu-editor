@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Image from "next/image";
 import { useRouter, usePathname } from "next/navigation";
 import {
   Plus,
@@ -378,12 +379,21 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="bg-linear-to-br from-blue-500 to-blue-700 text-white flex aspect-square size-8 items-center justify-center rounded-lg">
-                <span className="text-lg font-bold">T</span>
+              <div className="flex aspect-square size-8 items-center justify-center overflow-hidden bg-white dark:bg-slate-800 rounded-md">
+                <Image
+                  src="/image.png"
+                  alt="TrMenu Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain dark:brightness-110"
+                  priority
+                />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">TrMenu Editor</span>
-                <span className="truncate text-xs">v1.0.0</span>
+                <span className="truncate text-xs text-muted-foreground">
+                  可视化菜单编辑器
+                </span>
               </div>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -420,27 +430,38 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-64">
                   {recentItems.length === 0 ? (
-                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                      暂无最近打开的菜单
+                    <div className="px-2 py-6 text-center">
+                      <History className="h-8 w-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-xs text-muted-foreground">
+                        暂无最近打开的菜单
+                      </p>
                     </div>
                   ) : (
                     <>
-                      {recentItems.map((item) => (
+                      <div className="px-2 py-1.5">
+                        <p className="text-xs font-medium text-muted-foreground">
+                          最近打开
+                        </p>
+                      </div>
+                      {recentItems.map((item, index) => (
                         <DropdownMenuItem
                           key={item.menuId}
                           onClick={() => router.push(`/menu/${item.menuId}`)}
                           className="cursor-pointer"
                         >
-                          <File className="h-4 w-4 mr-2" />
-                          <span className="flex-1 truncate">
+                          <File className="h-4 w-4 mr-2 shrink-0" />
+                          <span className="flex-1 truncate text-sm">
                             {item.menuName}
+                          </span>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {index < 9 && `⌘${index + 1}`}
                           </span>
                         </DropdownMenuItem>
                       ))}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={clearRecent}
-                        className="text-destructive"
+                        className="text-destructive text-sm"
                       >
                         <X className="h-4 w-4 mr-2" />
                         清空历史记录
@@ -474,14 +495,23 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <Plus className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36">
-                <DropdownMenuItem onClick={() => handleCreateMenu()}>
+              <DropdownMenuContent align="end" className="w-40">
+                <DropdownMenuItem
+                  onClick={() => handleCreateMenu()}
+                  className="cursor-pointer"
+                >
                   <File className="h-4 w-4 mr-2" />
-                  创建菜单
+                  <span>创建菜单</span>
+                  <span className="ml-auto text-xs text-muted-foreground">
+                    ⌘N
+                  </span>
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={createGroup}>
+                <DropdownMenuItem
+                  onClick={createGroup}
+                  className="cursor-pointer"
+                >
                   <Folder className="h-4 w-4 mr-2" />
-                  创建菜单组
+                  <span>创建菜单组</span>
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -494,9 +524,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           >
             <SidebarMenu>
               {menus.length === 0 && menuGroups.length === 0 ? (
-                <div className="text-center text-xs text-muted-foreground py-6 px-4">
-                  <File className="h-6 w-6 mx-auto mb-2 opacity-50" />
-                  <p>暂无菜单</p>
+                <div className="text-center py-8 px-4">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-muted mb-3">
+                    <File className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <p className="text-sm font-medium text-muted-foreground mb-1">
+                    暂无菜单
+                  </p>
+                  <p className="text-xs text-muted-foreground/70">
+                    点击上方 + 号创建新菜单
+                  </p>
                 </div>
               ) : (
                 <>
