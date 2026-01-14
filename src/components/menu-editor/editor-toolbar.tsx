@@ -36,32 +36,32 @@ export function EditorToolbar({
   hasUnsavedChanges = false,
 }: EditorToolbarProps) {
   return (
-    <div className="h-11 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 flex items-center justify-between px-3 gap-3">
+    <div className="h-12 border-b flex items-center justify-between px-4 gap-3">
       {/* 左侧：文件名和主要操作 */}
-      <div className="flex items-center gap-2">
-        <div className="flex items-center gap-1.5">
-          <span className="font-medium text-sm">{menuName}</span>
+      <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-medium">{menuName}</span>
           {hasUnsavedChanges && (
-            <span className="text-[10px] text-muted-foreground">• 未保存</span>
+            <span className="text-xs text-muted-foreground">• 未保存</span>
           )}
         </div>
-        <Separator orientation="vertical" className="h-5" />
+        <Separator orientation="vertical" className="h-4" />
         <TooltipProvider delayDuration={300}>
-          <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-1">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={onSave}
-                  className="h-7 text-xs px-2"
+                  className="text-sm"
                 >
-                  <Save className="h-3.5 w-3.5 mr-1.5" />
+                  <Save className="h-4 w-4 mr-2" />
                   保存
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>保存更改 (Ctrl+S)</p>
+              <TooltipContent side="bottom">
+                <p>Ctrl+S</p>
               </TooltipContent>
             </Tooltip>
 
@@ -71,14 +71,14 @@ export function EditorToolbar({
                   variant="ghost"
                   size="sm"
                   onClick={onExport}
-                  className="h-7 text-xs px-2"
+                  className="text-sm"
                 >
-                  <FileDown className="h-3.5 w-3.5 mr-1.5" />
+                  <FileDown className="h-4 w-4 mr-2" />
                   导出
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>导出为 YAML 文件</p>
+              <TooltipContent side="bottom">
+                <p>导出为 YAML</p>
               </TooltipContent>
             </Tooltip>
 
@@ -88,14 +88,14 @@ export function EditorToolbar({
                   variant="ghost"
                   size="sm"
                   onClick={onImport}
-                  className="h-7 text-xs px-2"
+                  className="text-sm"
                 >
-                  <FileUp className="h-3.5 w-3.5 mr-1.5" />
+                  <FileUp className="h-4 w-4 mr-2" />
                   导入
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>从 YAML 文件导入</p>
+              <TooltipContent side="bottom">
+                <p>从 YAML 导入</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -103,34 +103,34 @@ export function EditorToolbar({
       </div>
 
       {/* 中间：编辑操作 */}
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-1">
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled>
-                <Undo className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon" disabled>
+                <Undo className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>撤销 (Ctrl+Z)</p>
+            <TooltipContent side="bottom">
+              <p>Ctrl+Z</p>
             </TooltipContent>
           </Tooltip>
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7" disabled>
-                <Redo className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon" disabled>
+                <Redo className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>重做 (Ctrl+Y)</p>
+            <TooltipContent side="bottom">
+              <p>Ctrl+Y</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>
 
       {/* 右侧：预览和设置 */}
-      <div className="flex items-center gap-1.5">
+      <div className="flex items-center gap-2">
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -138,27 +138,27 @@ export function EditorToolbar({
                 variant="default"
                 size="sm"
                 onClick={onPreview}
-                className="h-7 text-xs px-2.5"
+                className="text-sm"
               >
-                <Play className="h-3.5 w-3.5 mr-1.5" />
+                <Play className="h-4 w-4 mr-2" />
                 预览
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>预览菜单效果</p>
+            <TooltipContent side="bottom">
+              <p>预览菜单</p>
             </TooltipContent>
           </Tooltip>
 
-          <Separator orientation="vertical" className="h-5" />
+          <Separator orientation="vertical" className="h-4" />
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon" className="h-7 w-7">
-                <Settings className="h-3.5 w-3.5" />
+              <Button variant="ghost" size="icon">
+                <Settings className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>编辑器设置</p>
+            <TooltipContent side="bottom">
+              <p>设置</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { MenuItem, MenuConfig } from "@/types";
 import { cn } from "@/lib/utils";
-import { Plus, Copy, Clipboard, Trash2, Files } from "lucide-react";
+import { Plus, Copy, Clipboard, Trash2, Files, Box } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -131,12 +131,12 @@ export function MenuCanvas({
         <ContextMenuTrigger>
           <div
             className={cn(
-              "relative aspect-square border rounded transition-all",
-              "hover:border-primary/60 cursor-pointer group",
-              isSelected && "border-primary ring-1 ring-primary/30 shadow-sm",
-              isDragOver && "border-primary bg-primary/10 scale-[1.02]",
-              !item && "border-border/50 bg-muted/10 hover:bg-muted/30",
-              item && "border-border/70 bg-card shadow-sm hover:shadow"
+              "relative aspect-square border transition-all",
+              "hover:border-primary/50 cursor-pointer group",
+              isSelected && "border-primary ring-2 ring-primary/20",
+              isDragOver && "border-primary bg-primary/5",
+              !item && "bg-background border-border/40 hover:bg-muted/50",
+              item && "bg-card border-border hover:border-border/80"
             )}
             onClick={() => {
               if (item) {
@@ -154,36 +154,43 @@ export function MenuCanvas({
                 onDragStart={(e) => handleDragStart(e, item)}
                 onDragEnd={handleDragEnd}
                 className={cn(
-                  "w-full h-full flex flex-col items-center justify-center p-1",
-                  isDragging && "opacity-50 cursor-grabbing",
+                  "w-full h-full flex flex-col items-center justify-center p-2",
+                  isDragging && "opacity-40 cursor-grabbing",
                   "cursor-grab active:cursor-grabbing"
                 )}
               >
-                {/* 物品图标 - 这里暂时用文字表示材质 */}
-                <div className="text-base leading-none">
-                  {getItemIcon(item.material)}
+                {/* 物品图标 */}
+                <div className="flex items-center justify-center">
+                  <Box strokeWidth={3} className="h-4 w-4 text-foreground/70" />
                 </div>
+
+                {/* 物品材质名称（简短显示） */}
+                <div className="text-[9px] text-muted-foreground font-mono mt-1 truncate max-w-full">
+                  {getShortMaterial(item.material)}
+                </div>
+
                 {/* 物品数量 */}
                 {item.amount && item.amount > 1 && (
-                  <span className="absolute bottom-0.5 right-0.5 text-[9px] font-semibold text-foreground bg-background/70 rounded px-0.5 leading-none shadow-sm">
+                  <span className="absolute bottom-1 right-1 text-[10px] font-medium text-foreground/80 bg-background/80 rounded px-1 leading-none">
                     {item.amount}
                   </span>
                 )}
+
                 {/* 自定义模型数据标识 */}
                 {item.customModelData && (
-                  <span className="absolute top-0.5 right-0.5 text-[8px] text-muted-foreground bg-background/70 rounded px-0.5 leading-none font-mono shadow-sm">
+                  <span className="absolute top-1 right-1 text-[9px] text-muted-foreground/70 bg-background/80 rounded px-1 leading-none font-mono">
                     #{item.customModelData}
                   </span>
                 )}
               </div>
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground/15 group-hover:text-muted-foreground/30 transition-colors">
-                <Plus className="h-3 w-3" />
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors">
+                <Plus className="h-4 w-4" />
               </div>
             )}
 
             {/* 槽位号 */}
-            <span className="absolute top-0.5 left-0.5 text-[8px] text-muted-foreground/30 font-mono leading-none">
+            <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
               {slot}
             </span>
           </div>
@@ -257,36 +264,26 @@ export function MenuCanvas({
   };
 
   return (
-    <div
-      className="flex-1 flex flex-col items-center justify-center p-6 bg-muted/20 relative overflow-hidden"
-      style={{
-        backgroundImage: `
-          linear-gradient(to right, hsl(var(--border) / 0.1) 1px, transparent 1px),
-          linear-gradient(to bottom, hsl(var(--border) / 0.1) 1px, transparent 1px)
-        `,
-        backgroundSize: "24px 24px",
-      }}
-    >
-      {/* 编辑器网格背景装饰 */}
-      <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-background/30 pointer-events-none" />
-
-      <div className="w-full max-w-2xl relative z-10">
-        {/* 菜单标题 */}
-        <div className="mb-3 text-center">
-          <h2 className="text-lg font-bold mb-0.5">{menu.title}</h2>
-          <p className="text-[10px] text-muted-foreground">
-            {menu.size} 格 • {menu.type} • {menu.items.length} 个物品
-          </p>
+    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative">
+      <div className="w-full max-w-3xl space-y-4">
+        {/* 菜单标题栏 */}
+        <div className="flex items-center justify-between px-1">
+          <div>
+            <h2 className="text-sm font-medium">{menu.title}</h2>
+            <p className="text-xs text-muted-foreground">
+              {menu.type} • {menu.size} 槽位 • {menu.items.length} 项
+            </p>
+          </div>
         </div>
 
         {/* 菜单网格 */}
         <div
-          className="bg-background/90 backdrop-blur-sm rounded-lg p-2.5 border border-border/50"
+          className="bg-muted/30 rounded-lg p-3 border"
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${cols}, 1fr)`,
             gridTemplateRows: `repeat(${rows}, 1fr)`,
-            gap: "4px",
+            gap: "2px",
           }}
         >
           {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
@@ -296,55 +293,15 @@ export function MenuCanvas({
   );
 }
 
-// 根据材质名称返回对应的图标（emoji）
-function getItemIcon(material: string): string {
-  const iconMap: Record<string, string> = {
-    // 常用物品
-    DIAMOND: "💎",
-    EMERALD: "💚",
-    GOLD_INGOT: "🪙",
-    IRON_INGOT: "⚙️",
-    COAL: "🪨",
-    STONE: "🪨",
-    DIRT: "🟫",
-    GRASS_BLOCK: "🟩",
-    OAK_LOG: "🪵",
-    STICK: "🥢",
-    // 工具
-    DIAMOND_SWORD: "⚔️",
-    DIAMOND_PICKAXE: "⛏️",
-    DIAMOND_AXE: "🪓",
-    BOW: "🏹",
-    FISHING_ROD: "🎣",
-    // 食物
-    APPLE: "🍎",
-    BREAD: "🍞",
-    COOKED_BEEF: "🥩",
-    GOLDEN_APPLE: "🍏",
-    // 方块
-    CHEST: "📦",
-    CRAFTING_TABLE: "🔨",
-    FURNACE: "🔥",
-    ENCHANTING_TABLE: "📕",
-    ANVIL: "🔧",
-    // 装饰
-    GLASS: "🪟",
-    WOOL: "🧶",
-    CONCRETE: "🧱",
-    TERRACOTTA: "🏺",
-    // 红石
-    REDSTONE: "🔴",
-    REPEATER: "🔁",
-    COMPARATOR: "⚡",
-    LEVER: "🎚️",
-    BUTTON: "🔘",
-    // 其他
-    BARRIER: "🚫",
-    COMMAND_BLOCK: "📜",
-    PLAYER_HEAD: "👤",
-    BOOK: "📖",
-    MAP: "🗺️",
-  };
-
-  return iconMap[material] || "📦";
+// 获取简短的材质名称
+function getShortMaterial(material: string): string {
+  // 移除常见前缀，让名称更简短
+  const parts = material.split("_");
+  if (parts.length > 2) {
+    return parts.slice(-2).join("_");
+  }
+  if (parts.length > 1) {
+    return parts.join("_");
+  }
+  return material.slice(0, 8);
 }

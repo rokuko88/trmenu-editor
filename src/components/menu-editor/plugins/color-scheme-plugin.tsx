@@ -178,14 +178,14 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
             <Palette className="h-3.5 w-3.5 text-pink-500" />
             <h3 className="font-semibold text-xs">配色方案</h3>
           </div>
-          <p className="text-[10px] text-muted-foreground leading-tight">
+          <p className="text-muted-foreground leading-tight">
             快速应用预设的配色方案美化菜单
           </p>
         </div>
 
         {/* 明亮主题 */}
         <div className="space-y-1.5">
-          <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
             明亮主题
           </h4>
           {groupedSchemes.light.map((scheme) => (
@@ -200,7 +200,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
 
         {/* 深色主题 */}
         <div className="space-y-1.5">
-          <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
             深色主题
           </h4>
           {groupedSchemes.dark.map((scheme) => (
@@ -215,7 +215,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
 
         {/* 彩色主题 */}
         <div className="space-y-1.5">
-          <h4 className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
             彩色主题
           </h4>
           {groupedSchemes.colorful.map((scheme) => (
@@ -258,7 +258,7 @@ function SchemeCard({
         {/* 信息 */}
         <div className="flex-1 min-w-0">
           <h4 className="font-medium text-xs">{scheme.name}</h4>
-          <p className="text-[10px] text-muted-foreground mt-0.5 leading-tight">
+          <p className="text-muted-foreground mt-0.5 leading-tight">
             {scheme.description}
           </p>
 
@@ -267,7 +267,7 @@ function SchemeCard({
             <Button
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] flex-1 px-1.5"
+              className="h-6 flex-1 px-1.5"
               onClick={() => onApply(scheme)}
             >
               <Download className="h-2.5 w-2.5 mr-0.5" />
@@ -276,7 +276,7 @@ function SchemeCard({
             <Button
               variant="outline"
               size="sm"
-              className="h-6 text-[10px] flex-1 px-1.5"
+              className="h-6 flex-1 px-1.5"
               onClick={() => onApplyFull(scheme)}
             >
               <Palette className="h-2.5 w-2.5 mr-0.5" />

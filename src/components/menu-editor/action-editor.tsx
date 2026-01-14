@@ -137,10 +137,10 @@ export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
       <Button
         variant="outline"
         size="sm"
-        className="w-full h-7 text-xs"
+        className="w-full h-9 text-sm"
         onClick={handleAddAction}
       >
-        <Plus className="h-3 w-3 mr-1" />
+        <Plus className="h-4 w-4 mr-2" />
         添加动作
       </Button>
 

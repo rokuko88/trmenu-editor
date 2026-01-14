@@ -12,7 +12,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus } from "lucide-react";
 import {
   Collapsible,
@@ -49,42 +48,38 @@ export function PropertiesPanel({
   const [itemPropsOpen, setItemPropsOpen] = useState(true);
 
   return (
-    <div className="w-72 border-l bg-background/50 backdrop-blur-sm flex flex-col overflow-hidden">
+    <div className="w-80 border-l flex flex-col overflow-hidden">
       <ScrollArea className="flex-1">
-        <div className="p-3 space-y-3">
+        <div className="p-2 space-y-2">
           {/* 菜单属性 */}
           <Collapsible open={menuPropsOpen} onOpenChange={setMenuPropsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-accent rounded-md transition-colors">
-              <span className="font-semibold text-xs">菜单属性</span>
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
+              <span className="text-xs  text-muted-foreground uppercase tracking-wider">
+                菜单配置
+              </span>
               <ChevronRight
-                className={`h-3.5 w-3.5 transition-transform ${
+                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
                   menuPropsOpen ? "rotate-90" : ""
                 }`}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2 space-y-2.5">
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="menu-title"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  显示标题
+            <CollapsibleContent className="mt-3 space-y-3">
+              <div className="space-y-1">
+                <Label htmlFor="menu-title" className="text-sm ">
+                  标题
                 </Label>
                 <Input
                   id="menu-title"
                   value={menu.title}
                   onChange={(e) => onMenuUpdate({ title: e.target.value })}
                   placeholder="菜单标题"
-                  className="h-7 text-sm"
+                  className="text-sm"
                 />
               </div>
 
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="menu-size"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  菜单大小
+              <div className="space-y-1">
+                <Label htmlFor="menu-size" className="text-sm ">
+                  大小
                 </Label>
                 <Select
                   value={menu.size.toString()}
@@ -92,7 +87,7 @@ export function PropertiesPanel({
                     onMenuUpdate({ size: Number(value) as MenuSize })
                   }
                 >
-                  <SelectTrigger id="menu-size" className="h-7 text-sm">
+                  <SelectTrigger id="menu-size" className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -118,12 +113,9 @@ export function PropertiesPanel({
                 </Select>
               </div>
 
-              <div className="space-y-1.5">
-                <Label
-                  htmlFor="menu-type"
-                  className="text-xs font-medium text-muted-foreground"
-                >
-                  菜单类型
+              <div className="space-y-1">
+                <Label htmlFor="menu-type" className="text-sm ">
+                  类型
                 </Label>
                 <Select
                   value={menu.type}
@@ -131,7 +123,7 @@ export function PropertiesPanel({
                     onMenuUpdate({ type: value as MenuType })
                   }
                 >
-                  <SelectTrigger id="menu-type" className="h-7 text-sm">
+                  <SelectTrigger id="menu-type" className="text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -151,19 +143,16 @@ export function PropertiesPanel({
                 </Select>
               </div>
 
-              <div className="pt-1 flex gap-1.5">
-                <Badge
-                  variant="secondary"
-                  className="flex-1 justify-center text-xs py-0.5"
-                >
-                  物品 {menu.items.length}
-                </Badge>
-                <Badge
-                  variant="outline"
-                  className="flex-1 justify-center text-xs py-0.5"
-                >
-                  空位 {menu.size - menu.items.length}
-                </Badge>
+              <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
+                <div className="text-muted-foreground">
+                  <span className="font-medium">{menu.items.length}</span> 项
+                </div>
+                <div className="text-muted-foreground text-right">
+                  <span className="font-medium">
+                    {menu.size - menu.items.length}
+                  </span>{" "}
+                  空位
+                </div>
               </div>
             </CollapsibleContent>
           </Collapsible>
@@ -172,17 +161,17 @@ export function PropertiesPanel({
 
           {/* 物品属性 */}
           <Collapsible open={itemPropsOpen} onOpenChange={setItemPropsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full px-2 py-1.5 hover:bg-accent rounded-md transition-colors">
-              <span className="font-semibold text-xs">
-                {selectedItem ? "物品属性" : "未选中物品"}
+            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
+              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                {selectedItem ? "物品配置" : "未选中"}
               </span>
               <ChevronRight
-                className={`h-3.5 w-3.5 transition-transform ${
+                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
                   itemPropsOpen ? "rotate-90" : ""
                 }`}
               />
             </CollapsibleTrigger>
-            <CollapsibleContent className="mt-2">
+            <CollapsibleContent className="mt-3">
               {selectedItem ? (
                 <ItemProperties
                   item={selectedItem}
@@ -190,8 +179,8 @@ export function PropertiesPanel({
                   onDelete={() => onItemDelete(selectedItem.id)}
                 />
               ) : (
-                <div className="text-center py-6 text-xs text-muted-foreground">
-                  点击画布中的物品以编辑属性
+                <div className="text-center py-12 text-xs text-muted-foreground">
+                  选择一个物品以编辑
                 </div>
               )}
             </CollapsibleContent>
@@ -228,30 +217,24 @@ function ItemProperties({
   };
 
   return (
-    <div className="space-y-2.5">
+    <div className="space-y-3">
       {/* 材质 */}
-      <div className="space-y-1.5">
-        <Label
-          htmlFor="item-material"
-          className="text-xs font-medium text-muted-foreground"
-        >
-          材质 (Material)
+      <div className="space-y-2">
+        <Label htmlFor="item-material" className="text-sm ">
+          材质
         </Label>
         <Input
           id="item-material"
           value={item.material}
           onChange={(e) => onUpdate({ material: e.target.value.toUpperCase() })}
           placeholder="DIAMOND"
-          className="h-7 font-mono text-xs"
+          className="font-mono text-sm"
         />
       </div>
 
       {/* 显示名称 */}
-      <div className="space-y-1.5">
-        <Label
-          htmlFor="item-display-name"
-          className="text-xs font-medium text-muted-foreground"
-        >
+      <div className="space-y-2">
+        <Label htmlFor="item-display-name" className="text-sm ">
           显示名称
         </Label>
         <Input
@@ -259,17 +242,14 @@ function ItemProperties({
           value={item.displayName || ""}
           onChange={(e) => onUpdate({ displayName: e.target.value })}
           placeholder="自定义名称"
-          className="h-7 text-sm"
+          className="text-sm"
         />
       </div>
 
       {/* 数量和槽位 */}
-      <div className="grid grid-cols-2 gap-1.5">
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="item-amount"
-            className="text-xs font-medium text-muted-foreground"
-          >
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="item-amount" className="text-sm ">
             数量
           </Label>
           <Input
@@ -279,33 +259,27 @@ function ItemProperties({
             max={64}
             value={item.amount || 1}
             onChange={(e) => onUpdate({ amount: Number(e.target.value) })}
-            className="h-7 text-sm"
+            className="text-sm"
           />
         </div>
-        <div className="space-y-1.5">
-          <Label
-            htmlFor="item-slot"
-            className="text-xs font-medium text-muted-foreground"
-          >
+        <div className="space-y-2">
+          <Label htmlFor="item-slot" className="text-sm ">
             槽位
           </Label>
           <Input
             id="item-slot"
             type="number"
             value={item.slot}
-            className="h-7 text-sm"
+            className="text-sm"
             disabled
           />
         </div>
       </div>
 
       {/* 自定义模型数据 */}
-      <div className="space-y-1.5">
-        <Label
-          htmlFor="item-custom-model"
-          className="text-xs font-medium text-muted-foreground"
-        >
-          自定义模型数据 (CustomModelData)
+      <div className="space-y-2">
+        <Label htmlFor="item-custom-model" className="text-sm ">
+          CustomModelData
         </Label>
         <Input
           id="item-custom-model"
@@ -318,40 +292,36 @@ function ItemProperties({
                 : undefined,
             })
           }
-          placeholder="留空表示无"
-          className="h-7 text-sm"
+          placeholder="留空"
+          className="text-sm"
         />
       </div>
 
       {/* Lore 描述 */}
-      <div className="space-y-1.5">
-        <Label className="text-xs font-medium text-muted-foreground">
-          Lore 描述
-        </Label>
-        <div className="space-y-1.5">
+      <div className="space-y-2">
+        <Label className="text-sm ">Lore</Label>
+        <div className="space-y-2">
           {item.lore && item.lore.length > 0 && (
-            <div className="space-y-1">
+            <div className="space-y-1.5">
               {item.lore.map((line, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-1.5 group text-xs bg-muted/50 rounded px-2 py-1 hover:bg-muted/80 transition-colors"
+                  className="flex items-center gap-2 group text-sm bg-muted/30 rounded px-3 py-2 hover:bg-muted/50 transition-colors"
                 >
-                  <span className="flex-1 truncate text-muted-foreground text-xs">
-                    {line}
-                  </span>
+                  <span className="flex-1 truncate text-sm">{line}</span>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-4 w-4 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
                     onClick={() => handleRemoveLore(index)}
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
             </div>
           )}
-          <div className="flex gap-1.5">
+          <div className="flex gap-2">
             <Input
               value={loreInput}
               onChange={(e) => setLoreInput(e.target.value)}
@@ -361,46 +331,46 @@ function ItemProperties({
                 }
               }}
               placeholder="输入描述行"
-              className="h-7 text-xs"
+              className="h-9 text-sm"
             />
             <Button
               size="icon"
               variant="outline"
-              className="h-7 w-7 shrink-0"
+              className="h-9 w-9 shrink-0"
               onClick={handleAddLore}
             >
-              <Plus className="h-3.5 w-3.5" />
+              <Plus className="h-4 w-4" />
             </Button>
           </div>
         </div>
       </div>
 
       {/* 点击动作 */}
-      <div className="space-y-1.5">
-        <Label className="text-xs font-medium text-muted-foreground">
-          点击动作
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <Label className="text-sm ">动作</Label>
           {item.actions && item.actions.length > 0 && (
-            <Badge variant="secondary" className="ml-2 text-[9px] h-4 px-1">
-              {item.actions.length}
-            </Badge>
+            <span className="text-xs text-muted-foreground">
+              {item.actions.length} 项
+            </span>
           )}
-        </Label>
+        </div>
         <ActionEditor
           actions={item.actions || []}
           onUpdate={(actions: MenuAction[]) => onUpdate({ actions })}
         />
       </div>
 
-      <Separator className="my-2" />
+      <Separator className="my-4" />
 
       {/* 删除按钮 */}
       <Button
         variant="destructive"
         size="sm"
-        className="w-full h-7 text-xs"
+        className="w-full text-sm"
         onClick={onDelete}
       >
-        <Trash2 className="h-3 w-3 mr-1.5" />
+        <Trash2 className="h-4 w-4 mr-2" />
         删除物品
       </Button>
     </div>

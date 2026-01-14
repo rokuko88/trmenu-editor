@@ -295,9 +295,7 @@ export function ItemAssetsPlugin({
                 {/* 拖拽提示 */}
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                   <div className="bg-primary/10 rounded px-1.5 py-0.5">
-                    <span className="text-[10px] text-primary font-medium">
-                      拖拽到画布
-                    </span>
+                    <span className="text-primary font-medium">拖拽到画布</span>
                   </div>
                 </div>
 
@@ -311,7 +309,7 @@ export function ItemAssetsPlugin({
                         <h4 className="font-medium text-xs truncate">
                           {asset.name}
                         </h4>
-                        <p className="text-[10px] text-muted-foreground truncate leading-tight">
+                        <p className="text-muted-foreground truncate leading-tight">
                           {asset.description}
                         </p>
                       </div>
@@ -343,7 +341,7 @@ export function ItemAssetsPlugin({
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-6 text-[10px] flex-1"
+                    className="h-6 flex-1"
                     onClick={() => applyAsset(asset)}
                   >
                     <Download className="h-2.5 w-2.5 mr-0.5" />
@@ -357,7 +355,7 @@ export function ItemAssetsPlugin({
       </ScrollArea>
 
       {/* 底部统计 */}
-      <div className="p-2 border-t text-[10px] text-muted-foreground text-center shrink-0">
+      <div className="p-2 border-t text-muted-foreground text-center shrink-0">
         共 {filteredAssets.length} 个资产
       </div>
     </div>

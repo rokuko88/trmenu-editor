@@ -10,11 +10,11 @@ import {
   Package,
   Folder,
   File,
-  ChevronRight,
   History,
   X,
   PanelLeftClose,
   PanelLeft,
+  Search,
 } from "lucide-react";
 import {
   DndContext,
@@ -23,15 +23,12 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  useDroppable,
 } from "@dnd-kit/core";
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
-  useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 
 import {
   Sidebar,
@@ -55,222 +52,18 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { GithubStar } from "@/components/github-star";
-import type { MenuConfig, MenuGroup } from "@/types";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import { Separator } from "@/components/ui/separator";
 import { useMenuStore } from "@/store/menu-store";
-
-// 可拖拽的菜单项组件
-function DraggableMenuItem({
-  menu,
-  isActive,
-  onDelete,
-  onRename,
-}: {
-  menu: MenuConfig;
-  isActive: boolean;
-  onDelete: (menuId: string) => void;
-  onRename: (menuId: string) => void;
-}) {
-  const router = useRouter();
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: menu.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    cursor: isDragging ? "grabbing" : undefined,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <SidebarMenuItem>
-        <div className="group/item relative">
-          <SidebarMenuButton
-            onClick={() => router.push(`/menu/${menu.id}`)}
-            isActive={isActive}
-            tooltip={menu.name}
-            className="h-8"
-            {...attributes}
-            {...listeners}
-          >
-            <File className="h-4 w-4 shrink-0" />
-            <span className="truncate">{menu.name}</span>
-          </SidebarMenuButton>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100 absolute right-1 top-1/2 -translate-y-1/2 z-10 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Settings className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onRename(menu.id)}>
-                重命名
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(menu.id)}
-                className="text-destructive"
-              >
-                删除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </SidebarMenuItem>
-    </div>
-  );
-}
-
-// 可拖拽的菜单组组件
-function DraggableMenuGroup({
-  group,
-  menus,
-  isOpen,
-  selectedMenuId,
-  onToggle,
-  onCreateMenu,
-  onDeleteMenu,
-  onRenameMenu,
-  onDeleteGroup,
-  onRenameGroup,
-}: {
-  group: MenuGroup;
-  menus: MenuConfig[];
-  isOpen: boolean;
-  selectedMenuId?: string | null;
-  onToggle: () => void;
-  onCreateMenu: (groupId: string) => void;
-  onDeleteMenu: (menuId: string) => void;
-  onRenameMenu: (menuId: string) => void;
-  onDeleteGroup: (groupId: string) => void;
-  onRenameGroup: (groupId: string) => void;
-}) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: group.id });
-
-  const { setNodeRef: setDropRef, isOver } = useDroppable({
-    id: group.id,
-  });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-    cursor: isDragging ? "grabbing" : undefined,
-  };
-
-  return (
-    <div ref={setNodeRef} style={style}>
-      <Collapsible open={isOpen} onOpenChange={onToggle}>
-        <SidebarMenuItem>
-          <div
-            ref={setDropRef}
-            className={`${
-              isOver ? "bg-accent/50 rounded-md" : ""
-            } transition-colors relative group/group`}
-          >
-            <CollapsibleTrigger asChild>
-              <SidebarMenuButton
-                tooltip={group.name}
-                className="h-8"
-                {...attributes}
-                {...listeners}
-              >
-                <ChevronRight
-                  className={`h-4 w-4 shrink-0 transition-transform ${
-                    isOpen ? "rotate-90" : ""
-                  }`}
-                />
-                <Folder className="h-4 w-4 shrink-0" />
-                <span className="truncate flex-1">{group.name}</span>
-                <span className="text-xs text-muted-foreground">
-                  {menus.length}
-                </span>
-              </SidebarMenuButton>
-            </CollapsibleTrigger>
-            <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex gap-0.5 opacity-0 group-hover/group:opacity-100 transition-opacity">
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 shrink-0"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onCreateMenu(group.id);
-                }}
-                title="在此组中创建菜单"
-              >
-                <Plus className="h-3 w-3" />
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-6 w-6 shrink-0"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Settings className="h-3 w-3" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onRenameGroup(group.id)}>
-                    重命名
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() => onDeleteGroup(group.id)}
-                    className="text-destructive"
-                  >
-                    删除
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
-          <CollapsibleContent>
-            <SidebarMenu className="ml-4 border-l pl-2">
-              <SortableContext
-                items={menus.map((m) => m.id)}
-                strategy={verticalListSortingStrategy}
-              >
-                {menus.map((menu) => (
-                  <DraggableMenuItem
-                    key={menu.id}
-                    menu={menu}
-                    isActive={selectedMenuId === menu.id}
-                    onDelete={onDeleteMenu}
-                    onRename={onRenameMenu}
-                  />
-                ))}
-              </SortableContext>
-            </SidebarMenu>
-          </CollapsibleContent>
-        </SidebarMenuItem>
-      </Collapsible>
-    </div>
-  );
-}
+import { Input } from "@/components/ui/input";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import type { MenuConfig } from "@/types";
+import { DraggableMenuItem } from "./draggable-menu-item";
+import { DraggableMenuGroup } from "./draggable-menu-group";
+import { ThemeSwitcher } from "./theme-switcher";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
@@ -293,6 +86,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const clearRecent = useMenuStore((state) => state.clearRecent);
 
   const [openGroups, setOpenGroups] = React.useState<string[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState("");
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -352,19 +146,34 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   };
 
-  // 获取未分组的菜单（按 order 排序）
-  const ungroupedMenus = menus
-    .filter((menu) => !menu.groupId)
-    .sort((a, b) => a.order - b.order);
+  // 搜索过滤函数
+  const filterMenusBySearch = (menuList: MenuConfig[]) => {
+    if (!searchQuery.trim()) return menuList;
+    return menuList.filter((menu) =>
+      menu.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  };
 
-  // 获取分组的菜单（按 order 排序）
+  // 获取未分组的菜单（按 order 排序 + 搜索过滤）
+  const ungroupedMenus = filterMenusBySearch(
+    menus.filter((menu) => !menu.groupId).sort((a, b) => a.order - b.order)
+  );
+
+  // 获取分组的菜单（按 order 排序 + 搜索过滤）
   const getGroupMenus = (groupId: string) =>
-    menus
-      .filter((menu) => menu.groupId === groupId)
-      .sort((a, b) => a.order - b.order);
+    filterMenusBySearch(
+      menus
+        .filter((menu) => menu.groupId === groupId)
+        .sort((a, b) => a.order - b.order)
+    );
 
-  // 获取排序后的菜单组
-  const sortedGroups = [...menuGroups].sort((a, b) => a.order - b.order);
+  // 获取排序后的菜单组（如果组内有匹配的菜单才显示）
+  const sortedGroups = [...menuGroups]
+    .sort((a, b) => a.order - b.order)
+    .filter((group) => {
+      if (!searchQuery.trim()) return true;
+      return getGroupMenus(group.id).length > 0;
+    });
 
   // 切换侧边栏展开/收起
   const toggleSidebar = () => {
@@ -523,6 +332,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             </DropdownMenu>
           </div>
 
+          {/* 搜索框 */}
+          <div className="px-2 mb-2">
+            <div className="relative">
+              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+              <Input
+                type="text"
+                placeholder="搜索菜单..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 pl-7 pr-2 text-sm"
+              />
+            </div>
+          </div>
+
           <DndContext
             sensors={sensors}
             collisionDetection={closestCenter}
@@ -599,15 +422,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             <div className="flex-1 min-w-0 overflow-hidden">
               <GithubStar />
             </div>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 rounded-full shrink-0"
-              onClick={() => router.push("/settings")}
-              title="设置"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full shrink-0"
+                  title="设置"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="center" side="top">
+                <div className="space-y-3">
+                  {/* 主题切换 */}
+                  <div className="flex items-center justify-between gap-12">
+                    <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                      主题
+                    </div>
+                    <ThemeSwitcher />
+                  </div>
+
+                  <Separator />
+
+                  {/* 更多设置 */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full h-8 text-xs"
+                    onClick={() => {
+                      router.push("/settings");
+                    }}
+                  >
+                    更多设置
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
             <Button
               variant="ghost"
               size="icon"
@@ -622,15 +473,43 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         {/* 收起状态 */}
         <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center py-2 gap-2">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8 rounded-full"
-            onClick={() => router.push("/settings")}
-            title="设置"
-          >
-            <Settings className="h-4 w-4" />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full"
+                title="设置"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent align="end" side="right">
+              <div className="space-y-3">
+                {/* 主题切换 */}
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-muted-foreground">
+                    主题
+                  </div>
+                  <ThemeSwitcher />
+                </div>
+
+                <Separator />
+
+                {/* 更多设置 */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full h-8 text-xs"
+                  onClick={() => {
+                    router.push("/settings");
+                  }}
+                >
+                  更多设置
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
           <Button
             variant="ghost"
             size="icon"

@@ -1,8 +1,6 @@
 import { Plugin } from "@/types/plugin";
 import { Package, FileText, Wand2, Palette } from "lucide-react";
 import { ItemAssetsPlugin } from "./item-assets-plugin";
-import { TemplatesPlugin } from "./templates-plugin";
-import { QuickActionsPlugin } from "./quick-actions-plugin";
 import { ColorSchemePlugin } from "./color-scheme-plugin";
 
 // 注册所有可用的插件
@@ -20,7 +18,8 @@ export const AVAILABLE_PLUGINS: Plugin[] = [
     name: "菜单模板",
     description: "快速应用预设的菜单布局",
     icon: FileText,
-    component: TemplatesPlugin,
+    // component: TemplatesPlugin,
+    component: () => null,
     order: 2,
   },
   {
@@ -28,7 +27,7 @@ export const AVAILABLE_PLUGINS: Plugin[] = [
     name: "快捷操作",
     description: "一键生成常用布局和装饰",
     icon: Wand2,
-    component: QuickActionsPlugin,
+    component: () => null,
     order: 3,
   },
   {
@@ -41,9 +40,4 @@ export const AVAILABLE_PLUGINS: Plugin[] = [
   },
 ];
 
-export {
-  ItemAssetsPlugin,
-  TemplatesPlugin,
-  QuickActionsPlugin,
-  ColorSchemePlugin,
-};
+export { ItemAssetsPlugin, ColorSchemePlugin };
