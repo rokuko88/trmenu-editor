@@ -1,80 +1,89 @@
-# 生产部署工作流
-# 自动部署应用到 GitHub Pages
+# CI/CD 工作流
+# 代码检查、构建、部署到 GitHub Pages
 
-name: Deploy
+name: CI/CD
 
 on:
-    push:
-        branches:
-            - main
-    workflow_dispatch:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
 
 # 设置权限
 permissions:
-    contents: read
-    pages: write
-    id-token: write
+  contents: read
+  pages: write
+  id-token: write
 
 # 同时只允许一个部署
 concurrency:
-    group: pages
-    cancel-in-progress: false
+  group: pages
+  cancel-in-progress: false
 
 env:
-    NODE_VERSION: "20"
-    PNPM_VERSION: "10"
+  NODE_VERSION: "20"
+  PNPM_VERSION: "10"
 
 jobs:
-    # 构建应用
-    build:
-        name: 构建应用
-        runs-on: ubuntu-latest
+  # 构建应用
+  build:
+    name: 构建应用
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: 检出代码
-              uses: actions/checkout@v4
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
 
-            - name: 设置 pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: ${{ env.PNPM_VERSION }}
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-            - name: 设置 Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
-                  cache: pnpm
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
 
-            - name: 安装依赖
-              run: pnpm install --frozen-lockfile
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
 
-            - name: 代码检查
-              run: pnpm run lint
+      - name: 代码检查
+        run: pnpm run lint
 
-            - name: 类型检查
-              run: pnpm exec tsc --noEmit
+      - name: 类型检查
+        run: pnpm exec tsc --noEmit
 
-            - name: 构建应用
-              run: pnpm run build
-              env:
-                  NODE_ENV: production
+      - name: 构建应用
+        run: pnpm run build
+        env:
+          NODE_ENV: production
 
-            - name: 上传构建产物
-              uses: actions/upload-pages-artifact@v3
-              with:
-                  path: ./out
+      - name: 验证构建输出
+        run: |
+          echo "检查构建输出目录..."
+          ls -la out/
+          echo "检查 .nojekyll 文件..."
+          ls -la out/.nojekyll || echo ".nojekyll 不存在"
+          echo "检查 index.html..."
+          ls -la out/index.html || echo "index.html 不存在"
 
-    # 部署到 GitHub Pages
-    deploy:
-        name: 部署到 Pages
-        runs-on: ubuntu-latest
-        needs: build
+      - name: 上传构建产物
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./out
 
-        environment:
-            name: github-pages
-            url: ${{ steps.deployment.outputs.page_url }}
+  # 部署到 GitHub Pages
+  deploy:
+    name: 部署到 Pages
+    runs-on: ubuntu-latest
+    needs: build
 
-        steps:
-            - name: 部署到 GitHub Pages
-              id: deployment
-              uses: actions/deploy-pages@v4
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: 部署到 GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

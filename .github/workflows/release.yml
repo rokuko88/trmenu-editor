@@ -42,6 +42,8 @@ jobs:
 
       - name: 构建应用
         run: pnpm run build
+        env:
+          NODE_ENV: production
 
       - name: 生成变更日志
         id: changelog
