@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TrMenu Editor</title>
+    <script>
+      // GitHub Pages SPA 解决方案
+      // 处理动态路由，特别是 /menu/[id] 路由
+      (function () {
+        const basePath = "/trmenu-editor";
+        const fullPath = window.location.pathname;
+        const path = fullPath.replace(basePath, "");
+        const search = window.location.search;
+        const hash = window.location.hash;
+
+        // 检查是否是菜单编辑器路由
+        if (
+          path.startsWith("/menu/") &&
+          path !== "/menu/default" &&
+          path !== "/404.html"
+        ) {
+          // 提取菜单 ID
+          const menuId = path.replace("/menu/", "").replace(/\/$/, "");
+          // 存储真实的菜单 ID
+          sessionStorage.setItem("targetMenuId", menuId);
+          // 重定向到默认的菜单页面
+          window.location.href = basePath + "/menu/default" + search + hash;
+        } else if (path && path !== "/" && path !== "/404.html") {
+          // 其他路由，存储完整路径
+          sessionStorage.setItem("redirectPath", path + search + hash);
+          window.location.href = basePath + "/";
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <div
+      style="
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        font-family: system-ui;
+      "
+    >
+      <div style="text-align: center">
+        <h1>正在跳转...</h1>
+        <p>如果没有自动跳转，请<a href="/trmenu-editor/">点击这里</a></p>
+      </div>
+    </div>
+  </body>
+</html>

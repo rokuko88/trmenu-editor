@@ -13,6 +13,13 @@ import { AVAILABLE_PLUGINS } from "@/components/menu-editor/plugins";
 import { exportMenuToYAML, downloadYAML } from "@/lib/yaml-exporter";
 import { importMenuFromFile, validateYAML } from "@/lib/yaml-importer";
 
+// 为静态导出生成占位参数
+// 实际的菜单数据在客户端通过 zustand 加载
+export function generateStaticParams() {
+  // 返回一个占位 ID，实际路由在客户端处理
+  return [{ id: "default" }];
+}
+
 export default function MenuEditorPage() {
   const params = useParams();
   const router = useRouter();
@@ -25,7 +32,24 @@ export default function MenuEditorPage() {
   const deleteMenuItem = useMenuStore((state) => state.deleteMenuItem);
   const moveMenuItem = useMenuStore((state) => state.moveMenuItem);
 
-  const menuId = params.id as string;
+  // 获取菜单 ID：优先使用 sessionStorage 中的目标 ID（用于 GitHub Pages 路由恢复）
+  const [menuId, setMenuId] = useState<string>("");
+
+  useEffect(() => {
+    const targetMenuId =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("targetMenuId")
+        : null;
+
+    if (targetMenuId) {
+      // 使用存储的目标 ID 并清除存储
+      sessionStorage.removeItem("targetMenuId");
+      setMenuId(targetMenuId);
+    } else {
+      // 使用 URL 中的 ID
+      setMenuId(params.id as string);
+    }
+  }, [params.id]);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<MenuItem | null>(null);
 
@@ -299,6 +323,17 @@ export default function MenuEditorPage() {
 
     addMenuItem(menuId, clonedItem);
   };
+
+  // 等待 menuId 加载
+  if (!menuId) {
+    return (
+      <SidebarInset>
+        <div className="flex h-screen items-center justify-center">
+          <p className="text-muted-foreground">加载中...</p>
+        </div>
+      </SidebarInset>
+    );
+  }
 
   if (!currentMenu) {
     return (

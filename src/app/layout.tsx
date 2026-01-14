@@ -4,6 +4,7 @@ import "./globals.css";
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/siderbar";
 import { ThemeProvider } from "@/components/theme-provider";
+import { RouteHandler } from "@/components/route-handler";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,6 +41,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <RouteHandler />
           <SidebarProvider>
             <AppSidebar />
             {children}
