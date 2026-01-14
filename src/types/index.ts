@@ -36,4 +36,15 @@ export interface MenuConfig {
   items: MenuItem[];
   createdAt: string;
   updatedAt: string;
+  groupId?: string; // 所属菜单组ID（可选）
+  order: number; // 排序顺序
+}
+
+// 菜单组
+export interface MenuGroup {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  order: number; // 排序顺序
 }
