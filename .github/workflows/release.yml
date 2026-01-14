@@ -1,93 +1,93 @@
-# 发布工作流
-# 当创建新的 tag 时自动创建 Release
+# 版本发布工作流
+# 创建 tag 时自动构建并发布新版本
 
 name: Release
 
 on:
-    push:
-        tags:
-            - "v*.*.*"
+  push:
+    tags:
+      - "v*.*.*"
 
 env:
-    NODE_VERSION: "20"
-    PNPM_VERSION: "8"
+  NODE_VERSION: "20"
+  PNPM_VERSION: "10"
 
 jobs:
-    release:
-        name: 创建 Release
-        runs-on: ubuntu-latest
+  release:
+    name: 创建 Release
+    runs-on: ubuntu-latest
 
-        permissions:
-            contents: write
+    permissions:
+      contents: write
 
-        steps:
-            - name: 检出代码
-              uses: actions/checkout@v4
-              with:
-                  fetch-depth: 0
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-            - name: 设置 pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: ${{ env.PNPM_VERSION }}
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-            - name: 设置 Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
-                  cache: "pnpm"
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
 
-            - name: 安装依赖
-              run: pnpm install --frozen-lockfile
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
 
-            - name: 构建应用
-              run: pnpm run build
+      - name: 构建应用
+        run: pnpm run build
 
-            - name: 生成变更日志
-              id: changelog
-              run: |
-                  # 获取上一个 tag
-                  PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
+      - name: 生成变更日志
+        id: changelog
+        run: |
+          # 获取上一个 tag
+          PREVIOUS_TAG=$(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1) 2>/dev/null || echo "")
 
-                  if [ -z "$PREVIOUS_TAG" ]; then
-                    CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
-                  else
-                    CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
-                  fi
+          if [ -z "$PREVIOUS_TAG" ]; then
+            CHANGELOG=$(git log --pretty=format:"- %s (%h)" --no-merges)
+          else
+            CHANGELOG=$(git log ${PREVIOUS_TAG}..HEAD --pretty=format:"- %s (%h)" --no-merges)
+          fi
 
-                  echo "changelog<<EOF" >> $GITHUB_OUTPUT
-                  echo "$CHANGELOG" >> $GITHUB_OUTPUT
-                  echo "EOF" >> $GITHUB_OUTPUT
+          echo "changelog<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGELOG" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
-            - name: 创建 Release
-              uses: actions/create-release@v1
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              with:
-                  tag_name: ${{ github.ref_name }}
-                  release_name: Release ${{ github.ref_name }}
-                  body: |
-                      ## 🎉 TrMenu Editor ${{ github.ref_name }}
+      - name: 创建 Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref_name }}
+          release_name: Release ${{ github.ref_name }}
+          body: |
+            ## 🎉 TrMenu Editor ${{ github.ref_name }}
 
-                      ### 📝 变更内容
+            ### 📝 变更内容
 
-                      ${{ steps.changelog.outputs.changelog }}
+            ${{ steps.changelog.outputs.changelog }}
 
-                      ### 📦 安装方式
+            ### 📦 安装方式
 
-                      ```bash
-                      git clone https://github.com/${{ github.repository }}.git
-                      cd trmenu-editor
-                      pnpm install
-                      pnpm run build
-                      pnpm start
-                      ```
+            ```bash
+            git clone https://github.com/${{ github.repository }}.git
+            cd trmenu-editor
+            pnpm install
+            pnpm run build
+            pnpm start
+            ```
 
-                      ### 🐳 Docker
+            ### 🐳 Docker
 
-                      ```bash
-                      docker pull ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
-                      docker run -d -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
-                      ```
-                  draft: false
-                  prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+            ```bash
+            docker pull ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
+            docker run -d -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
+            ```
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}

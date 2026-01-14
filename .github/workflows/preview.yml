@@ -1,63 +1,63 @@
-# Pull Request 预览部署
-# 为每个 PR 创建预览环境
+# PR 预览工作流
+# 为每个 Pull Request 创建预览环境
 
-name: Preview Deployment
+name: Preview
 
 on:
-    pull_request:
-        types: [opened, synchronize, reopened]
-        branches:
-            - main
-            - master
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches:
+      - main
+      - master
 
 env:
-    NODE_VERSION: "20"
-    PNPM_VERSION: "8"
+  NODE_VERSION: "20"
+  PNPM_VERSION: "10"
 
 jobs:
-    preview:
-        name: 创建预览部署
-        runs-on: ubuntu-latest
-        if: false # 设置为 true 启用
+  preview:
+    name: 创建预览部署
+    runs-on: ubuntu-latest
+    if: false # 设置为 true 启用
 
-        steps:
-            - name: 检出代码
-              uses: actions/checkout@v4
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
 
-            - name: 设置 pnpm
-              uses: pnpm/action-setup@v2
-              with:
-                  version: ${{ env.PNPM_VERSION }}
+      - name: 设置 pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: ${{ env.PNPM_VERSION }}
 
-            - name: 设置 Node.js
-              uses: actions/setup-node@v4
-              with:
-                  node-version: ${{ env.NODE_VERSION }}
-                  cache: "pnpm"
+      - name: 设置 Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "pnpm"
 
-            - name: 安装依赖
-              run: pnpm install --frozen-lockfile
+      - name: 安装依赖
+        run: pnpm install --frozen-lockfile
 
-            - name: 构建应用
-              run: pnpm run build
+      - name: 构建应用
+        run: pnpm run build
 
-            - name: 部署预览到 Vercel
-              uses: amondnet/vercel-action@v25
-              id: vercel-deploy
-              with:
-                  vercel-token: ${{ secrets.VERCEL_TOKEN }}
-                  vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-                  vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  github-comment: true
+      - name: 部署预览到 Vercel
+        uses: amondnet/vercel-action@v25
+        id: vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-comment: true
 
-            - name: 评论 PR
-              uses: actions/github-script@v7
-              with:
-                  script: |
-                      github.rest.issues.createComment({
-                        issue_number: context.issue.number,
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        body: `🎉 预览部署成功！\n\n预览地址: ${{ steps.vercel-deploy.outputs.preview-url }}`
-                      })
+      - name: 评论 PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🎉 预览部署成功！\n\n预览地址: ${{ steps.vercel-deploy.outputs.preview-url }}`
+            })

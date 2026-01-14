@@ -1,62 +1,70 @@
-# 静态部署到 GitHub Pages
-# 只部署到 Pages，不包含其他检查
+# 生产部署工作流
+# 自动部署应用到 GitHub Pages
 
-name: Deploy to Pages
+name: Deploy
 
 on:
-    # 在 main 分支推送时运行
     push:
-        branches: [main, master]
-
-    # 允许手动触发
+        branches:
+            - main
     workflow_dispatch:
 
-# 设置 GITHUB_TOKEN 权限，允许部署到 GitHub Pages
+# 设置权限
 permissions:
     contents: read
     pages: write
     id-token: write
 
-# 同时只允许一个部署任务
+# 同时只允许一个部署
 concurrency:
-    group: "pages"
+    group: pages
     cancel-in-progress: false
 
+env:
+    NODE_VERSION: "20"
+    PNPM_VERSION: "10"
+
 jobs:
-    # 构建任务
+    # 构建应用
     build:
-        name: 构建静态站点
+        name: 构建应用
         runs-on: ubuntu-latest
 
         steps:
-            - name: 📥 检出代码
+            - name: 检出代码
               uses: actions/checkout@v4
 
-            - name: 📦 设置 pnpm
+            - name: 设置 pnpm
               uses: pnpm/action-setup@v2
               with:
-                  version: 8
+                  version: ${{ env.PNPM_VERSION }}
 
-            - name: 🟢 设置 Node.js
+            - name: 设置 Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: "20"
-                  cache: "pnpm"
+                  node-version: ${{ env.NODE_VERSION }}
+                  cache: pnpm
 
-            - name: 📚 安装依赖
+            - name: 安装依赖
               run: pnpm install --frozen-lockfile
 
-            - name: 🏗️ 构建应用
+            - name: 代码检查
+              run: pnpm run lint
+
+            - name: 类型检查
+              run: pnpm exec tsc --noEmit
+
+            - name: 构建应用
               run: pnpm run build
               env:
                   NODE_ENV: production
 
-            - name: 📤 上传构建产物
+            - name: 上传构建产物
               uses: actions/upload-pages-artifact@v3
               with:
                   path: ./out
 
-    # 部署任务
+    # 部署到 GitHub Pages
     deploy:
         name: 部署到 Pages
         runs-on: ubuntu-latest
@@ -67,6 +75,6 @@ jobs:
             url: ${{ steps.deployment.outputs.page_url }}
 
         steps:
-            - name: 🚀 部署到 GitHub Pages
+            - name: 部署到 GitHub Pages
               id: deployment
               uses: actions/deploy-pages@v4

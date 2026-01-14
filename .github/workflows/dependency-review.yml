@@ -1,7 +1,7 @@
-# 依赖审查
-# 在 Pull Request 中检查依赖变更是否存在安全问题
+# 依赖安全审查工作流
+# 自动检查 PR 中的依赖变更安全性
 
-name: Dependency Review
+name: Security - Dependency Review
 
 on:
     pull_request:
