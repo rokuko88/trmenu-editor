@@ -10,6 +10,8 @@ import { MenuCanvas } from "@/components/menu-editor/menu-canvas";
 import { PropertiesPanel } from "@/components/menu-editor/properties-panel";
 import { PluginPanel } from "@/components/menu-editor/plugins/plugin-panel";
 import { AVAILABLE_PLUGINS } from "@/components/menu-editor/plugins";
+import { exportMenuToYAML, downloadYAML } from "@/lib/yaml-exporter";
+import { importMenuFromFile, validateYAML } from "@/lib/yaml-importer";
 
 export default function MenuEditorPage() {
   const params = useParams();
@@ -25,6 +27,7 @@ export default function MenuEditorPage() {
 
   const menuId = params.id as string;
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [clipboard, setClipboard] = useState<MenuItem | null>(null);
 
   // 查找当前菜单
   const currentMenu = menus.find((m) => m.id === menuId);
@@ -56,20 +59,93 @@ export default function MenuEditorPage() {
   // 处理导出
   const handleExport = () => {
     if (!currentMenu) return;
-    // TODO: 实现导出为 YAML
-    const dataStr = JSON.stringify(currentMenu, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${currentMenu.name}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+
+    try {
+      const yaml = exportMenuToYAML(currentMenu);
+      const filename = currentMenu.name.replace(/[^\w\s\u4e00-\u9fa5]/g, "_");
+      downloadYAML(filename, yaml);
+      alert("导出成功！");
+    } catch (error) {
+      console.error("导出失败:", error);
+      alert(`导出失败: ${error instanceof Error ? error.message : "未知错误"}`);
+    }
   };
 
   // 处理导入
   const handleImport = () => {
-    alert("导入功能即将推出！");
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = ".yml,.yaml";
+
+    input.onchange = async (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      try {
+        // 先读取文件内容验证
+        const reader = new FileReader();
+        reader.onload = async (event) => {
+          const content = event.target?.result as string;
+
+          // 验证 YAML
+          const validation = validateYAML(content);
+          if (!validation.valid) {
+            alert(`YAML 格式错误: ${validation.error}`);
+            return;
+          }
+
+          if (validation.warnings && validation.warnings.length > 0) {
+            const proceed = confirm(
+              `检测到以下警告:\n${validation.warnings.join(
+                "\n"
+              )}\n\n是否继续导入？`
+            );
+            if (!proceed) return;
+          }
+
+          // 导入菜单
+          const importedMenu = await importMenuFromFile(file);
+
+          // 询问是否覆盖当前菜单或创建新菜单
+          const shouldReplace = confirm(
+            `是否用导入的配置替换当前菜单 "${currentMenu?.name}"?\n\n点击"确定"替换当前菜单\n点击"取消"创建新菜单`
+          );
+
+          if (shouldReplace && currentMenu) {
+            // 替换当前菜单
+            updateMenu(menuId, {
+              title: importedMenu.title,
+              size: importedMenu.size,
+              type: importedMenu.type,
+              items: importedMenu.items,
+            });
+            alert("导入成功！已替换当前菜单。");
+          } else {
+            // 创建新菜单
+            const createMenu = useMenuStore.getState().createMenu;
+            const newMenuId = createMenu(currentMenu?.groupId);
+            updateMenu(newMenuId, {
+              name: importedMenu.name,
+              title: importedMenu.title,
+              size: importedMenu.size,
+              type: importedMenu.type,
+              items: importedMenu.items,
+            });
+            router.push(`/menu/${newMenuId}`);
+            alert("导入成功！已创建新菜单。");
+          }
+        };
+
+        reader.readAsText(file, "utf-8");
+      } catch (error) {
+        console.error("导入失败:", error);
+        alert(
+          `导入失败: ${error instanceof Error ? error.message : "未知错误"}`
+        );
+      }
+    };
+
+    input.click();
   };
 
   // 处理预览
@@ -163,6 +239,67 @@ export default function MenuEditorPage() {
     }
   };
 
+  // 处理复制物品
+  const handleCopyItem = (item: MenuItem) => {
+    setClipboard({ ...item });
+  };
+
+  // 处理粘贴物品
+  const handlePasteItem = (slot: number) => {
+    if (!clipboard || !currentMenu) return;
+
+    // 检查目标槽位是否已有物品
+    const existingItem = currentMenu.items.find((i) => i.slot === slot);
+    if (existingItem) {
+      const shouldReplace = confirm("目标槽位已有物品，是否替换？");
+      if (!shouldReplace) return;
+      deleteMenuItem(menuId, existingItem.id);
+    }
+
+    // 创建新物品（复制剪贴板中的物品）
+    const newItem: MenuItem = {
+      ...clipboard,
+      id: `item-${Date.now()}`,
+      slot,
+    };
+
+    addMenuItem(menuId, newItem);
+  };
+
+  // 处理克隆物品
+  const handleCloneItem = (item: MenuItem, sourceSlot: number) => {
+    if (!currentMenu) return;
+
+    const targetSlotStr = prompt(
+      "请输入目标槽位号 (0-" + (currentMenu.size - 1) + "):",
+      String(sourceSlot + 1)
+    );
+
+    if (!targetSlotStr) return;
+
+    const targetSlot = parseInt(targetSlotStr);
+    if (isNaN(targetSlot) || targetSlot < 0 || targetSlot >= currentMenu.size) {
+      alert("无效的槽位号");
+      return;
+    }
+
+    // 检查目标槽位是否已有物品
+    const existingItem = currentMenu.items.find((i) => i.slot === targetSlot);
+    if (existingItem) {
+      alert("目标槽位已有物品");
+      return;
+    }
+
+    // 克隆物品到目标槽位
+    const clonedItem: MenuItem = {
+      ...item,
+      id: `item-${Date.now()}`,
+      slot: targetSlot,
+    };
+
+    addMenuItem(menuId, clonedItem);
+  };
+
   if (!currentMenu) {
     return (
       <SidebarInset>
@@ -195,10 +332,15 @@ export default function MenuEditorPage() {
             onSelectItem={setSelectedItemId}
             onSlotClick={handleSlotClick}
             onItemMove={handleItemMove}
+            onItemCopy={handleCopyItem}
+            onItemPaste={handlePasteItem}
+            onItemDelete={handleItemDelete}
+            onItemClone={handleCloneItem}
+            clipboard={clipboard}
           />
 
           {/* 右侧面板容器 */}
-          <div className="flex flex-shrink-0">
+          <div className="flex shrink-0">
             {/* 属性面板 */}
             <PropertiesPanel
               menu={currentMenu}

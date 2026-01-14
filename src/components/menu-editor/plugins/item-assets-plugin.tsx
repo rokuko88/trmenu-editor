@@ -41,6 +41,7 @@ const getInitialAssets = (): ItemAsset[] => {
         lore: ["§7点击关闭菜单"],
         actions: [
           {
+            id: "action-close-1",
             type: "CLOSE",
             clickType: "ALL",
             value: "",

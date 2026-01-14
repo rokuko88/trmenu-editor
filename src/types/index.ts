@@ -7,6 +7,15 @@ export type MenuType = "CHEST" | "HOPPER" | "DISPENSER" | "DROPPER";
 // 点击类型
 export type ClickType = "LEFT" | "RIGHT" | "SHIFT_LEFT" | "SHIFT_RIGHT" | "ALL";
 
+// 动作类型
+export type ActionType = "COMMAND" | "OPEN_MENU" | "CLOSE" | "MESSAGE";
+
+// 条件类型
+export interface ActionCondition {
+  type: "require" | "deny";
+  expression: string; // Kether 表达式
+}
+
 // 菜单项（物品）
 export interface MenuItem {
   id: string;
@@ -21,9 +30,12 @@ export interface MenuItem {
 
 // 菜单动作
 export interface MenuAction {
-  type: "COMMAND" | "OPEN_MENU" | "CLOSE" | "MESSAGE";
+  id: string;
+  type: ActionType;
   clickType: ClickType;
   value: string;
+  priority?: number; // 优先级，数字越大越优先
+  conditions?: ActionCondition[]; // 条件列表
 }
 
 // 菜单配置

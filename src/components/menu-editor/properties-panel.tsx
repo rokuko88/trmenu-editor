@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import type { MenuConfig, MenuItem, MenuSize, MenuType } from "@/types";
+import type {
+  MenuConfig,
+  MenuItem,
+  MenuSize,
+  MenuType,
+  MenuAction,
+} from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -20,15 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { ChevronRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { ActionEditor } from "./action-editor";
 
 interface PropertiesPanelProps {
   menu: MenuConfig;
@@ -375,22 +375,21 @@ function ItemProperties({
         </div>
       </div>
 
-      {/* 动作提示 */}
-      <Card className="border-dashed">
-        <CardHeader className="p-2.5 pb-1.5">
-          <CardTitle className="text-xs font-medium">点击动作</CardTitle>
-          <CardDescription className="text-xs">
-            {item.actions && item.actions.length > 0
-              ? `${item.actions.length} 个动作`
-              : "暂无动作"}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-2.5 pt-0">
-          <Button variant="outline" size="sm" className="w-full h-6 text-xs">
-            配置动作
-          </Button>
-        </CardContent>
-      </Card>
+      {/* 点击动作 */}
+      <div className="space-y-1.5">
+        <Label className="text-xs font-medium text-muted-foreground">
+          点击动作
+          {item.actions && item.actions.length > 0 && (
+            <Badge variant="secondary" className="ml-2 text-[9px] h-4 px-1">
+              {item.actions.length}
+            </Badge>
+          )}
+        </Label>
+        <ActionEditor
+          actions={item.actions || []}
+          onUpdate={(actions: MenuAction[]) => onUpdate({ actions })}
+        />
+      </div>
 
       <Separator className="my-2" />
 
