@@ -41,20 +41,20 @@ export function GithubStar() {
   };
 
   return (
-    <Button variant="outline" size="sm" className="h-8 gap-2" asChild>
+    <Button variant="outline" size="sm" className="h-8" asChild>
       <a
         href={GITHUB_URL}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2"
+        className="flex items-center gap-1"
       >
-        <Github className="h-3.5 w-3.5" />
+        <Github className="h-3.5! w-3.5!" />
         <span className="text-xs font-medium">GitHub</span>
         {!loading && stars !== null && stars > 0 && (
           <>
             <span className="text-muted-foreground">|</span>
             <div className="flex items-center gap-1">
-              <Star className="h-3 w-3 fill-current" />
+              <Star className="h-3! w-3! stroke-current" />
               <span className="text-xs font-medium">{formatStars(stars)}</span>
             </div>
           </>
