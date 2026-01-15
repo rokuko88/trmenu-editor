@@ -1,4 +1,6 @@
 export { EditorToolbar } from "./editor-toolbar";
+export { CanvasToolbar } from "./canvas-toolbar";
+export { CodeEditor } from "./code-editor";
 export { MenuCanvas } from "./menu-canvas";
 export { PropertiesPanel } from "./properties-panel";
 export { QuickActions } from "./quick-actions";
