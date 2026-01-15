@@ -109,6 +109,15 @@ export function PropertiesPanel({
                     <SelectItem value="54" className="text-sm">
                       54 格 (6 行)
                     </SelectItem>
+                    <SelectItem value="63" className="text-sm">
+                      63 格 (7 行)
+                    </SelectItem>
+                    <SelectItem value="72" className="text-sm">
+                      72 格 (8 行)
+                    </SelectItem>
+                    <SelectItem value="81" className="text-sm">
+                      81 格 (9 行)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>

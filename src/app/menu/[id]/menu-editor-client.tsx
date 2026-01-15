@@ -345,7 +345,9 @@ export default function MenuEditorClient() {
   const handleBatchDelete = (itemIds: string[]) => {
     if (!currentMenu) return;
 
-    const shouldDelete = confirm(`确定要删除选中的 ${itemIds.length} 个物品吗？`);
+    const shouldDelete = confirm(
+      `确定要删除选中的 ${itemIds.length} 个物品吗？`
+    );
     if (!shouldDelete) return;
 
     itemIds.forEach((itemId) => {
@@ -458,6 +460,7 @@ export default function MenuEditorClient() {
             onItemClone={handleCloneItem}
             onBatchDelete={handleBatchDelete}
             onBatchMove={handleBatchMove}
+            onMenuUpdate={handleMenuUpdate}
             clipboard={clipboard}
           />
 

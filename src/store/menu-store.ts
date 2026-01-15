@@ -68,7 +68,7 @@ export const useMenuStore = create<MenuStore>()(
           id: `menu-${Date.now()}`,
           name: `菜单 ${state.menus.length + 1}`,
           title: "箱子菜单",
-          size: 54,
+          size: 27,
           type: "CHEST",
           items: [],
           createdAt: new Date().toISOString(),

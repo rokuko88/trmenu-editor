@@ -1,5 +1,5 @@
 // 菜单大小类型
-export type MenuSize = 9 | 18 | 27 | 36 | 45 | 54;
+export type MenuSize = 9 | 18 | 27 | 36 | 45 | 54 | 63 | 72 | 81;
 
 // 菜单类型
 export type MenuType = "CHEST" | "HOPPER" | "DISPENSER" | "DROPPER";
