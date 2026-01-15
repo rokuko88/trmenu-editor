@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import { getAssetPath } from "@/lib/config";
 
 interface WelcomePageProps {
   onCreateBlank: () => void;
@@ -97,12 +98,13 @@ export default function WelcomePage({
           <div className="flex items-center gap-6">
             <div className="relative w-24 h-24 shrink-0">
               <Image
-                src="/image.png"
+                src={getAssetPath("/image.png")}
                 alt="TrMenu Editor Logo"
                 width={96}
                 height={96}
                 className="rounded-xl"
                 priority
+                unoptimized
               />
             </div>
             <div>

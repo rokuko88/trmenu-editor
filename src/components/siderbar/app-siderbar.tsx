@@ -64,6 +64,7 @@ import type { MenuConfig } from "@/types";
 import { DraggableMenuItem } from "./draggable-menu-item";
 import { DraggableMenuGroup } from "./draggable-menu-group";
 import { ThemeSwitcher } from "./theme-switcher";
+import { getAssetPath } from "@/lib/config";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
@@ -191,12 +192,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             >
               <div className="flex aspect-square size-8 items-center justify-center overflow-hidden bg-white dark:bg-slate-800 rounded-md group-data-[collapsible=icon]:mx-0">
                 <Image
-                  src="/image.png"
+                  src={getAssetPath("/image.png")}
                   alt="TrMenu Logo"
                   width={32}
                   height={32}
                   className="object-contain dark:brightness-110"
                   priority
+                  unoptimized
                 />
               </div>
               <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">

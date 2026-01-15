@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: "TrMenu Editor - 可视化菜单编辑器",
   description: "Minecraft TrMenu 插件可视化编辑器",
   icons: {
-    icon: "/image.png",
-    apple: "/image.png",
+    icon: "/trmenu-editor/image.png",
+    apple: "/trmenu-editor/image.png",
   },
 };
 
