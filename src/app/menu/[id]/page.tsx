@@ -13,13 +13,6 @@ import { AVAILABLE_PLUGINS } from "@/components/menu-editor/plugins";
 import { exportMenuToYAML, downloadYAML } from "@/lib/yaml-exporter";
 import { importMenuFromFile, validateYAML } from "@/lib/yaml-importer";
 
-// 为静态导出生成占位参数
-// 实际的菜单数据在客户端通过 zustand 加载
-export function generateStaticParams() {
-  // 返回一个占位 ID，实际路由在客户端处理
-  return [{ id: "default" }];
-}
-
 export default function MenuEditorPage() {
   const params = useParams();
   const router = useRouter();
