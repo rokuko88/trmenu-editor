@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { File, Settings } from "lucide-react";
+import { File, Settings, Trash2 } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -59,36 +59,56 @@ export function DraggableMenuItem({
             onClick={handleMenuClick}
             isActive={isActive}
             tooltip={menu.name}
-            className="h-8"
+            className="h-8 pr-12"
             {...attributes}
             {...listeners}
           >
             <File className="h-4 w-4 shrink-0" />
             <span className="truncate">{menu.name}</span>
           </SidebarMenuButton>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-5 w-5 shrink-0 opacity-0 group-hover/item:opacity-100 absolute right-1 top-1/2 -translate-y-1/2 z-10 transition-opacity"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Settings className="h-3 w-3" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onRename(menu.id)}>
-                重命名
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => onDelete(menu.id)}
-                className="text-destructive"
-              >
-                删除
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
+          {/* 操作按钮组 */}
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity z-10">
+            {/* 删除按钮 */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(menu.id);
+              }}
+              title="删除菜单"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+
+            {/* 更多选项 */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-5 w-5 shrink-0"
+                  onClick={(e) => e.stopPropagation()}
+                  title="更多选项"
+                >
+                  <Settings className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onRename(menu.id)}>
+                  重命名
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onDelete(menu.id)}
+                  className="text-destructive"
+                >
+                  删除
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </SidebarMenuItem>
     </div>
