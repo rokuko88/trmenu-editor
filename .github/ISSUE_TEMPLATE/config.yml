@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: 讨论区
+    url: https://github.com/rokuko88/trmenu-editor/discussions
+    about: 提出一般性问题或讨论想法
+  - name: 问题咨询
+    url: https://github.com/rokuko88/trmenu-editor/discussions/categories/q-a
+    about: 询问使用问题或寻求帮助
