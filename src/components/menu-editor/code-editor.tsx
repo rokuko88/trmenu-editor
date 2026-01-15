@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { useTheme } from "next-themes";
 import Editor from "@monaco-editor/react";
 import type { MenuConfig } from "@/types";
 import { exportMenuToYAML } from "@/lib/yaml-exporter";
@@ -11,36 +12,34 @@ interface CodeEditorProps {
 }
 
 export function CodeEditor({ menu, onSave }: CodeEditorProps) {
-  const [code, setCode] = useState("");
-  const [isDark, setIsDark] = useState(false);
+  const { theme, resolvedTheme } = useTheme();
+  const [localCode, setLocalCode] = useState<string | null>(null);
+  
+  // 确定当前是否为暗黑模式
+  const isDark = theme === "dark" || resolvedTheme === "dark";
 
-  useEffect(() => {
-    // 检测主题
-    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-    setIsDark(mediaQuery.matches);
-
-    const handleChange = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    mediaQuery.addEventListener("change", handleChange);
-    return () => mediaQuery.removeEventListener("change", handleChange);
-  }, []);
-
-  useEffect(() => {
-    // 生成 YAML 代码
+  // 使用 useMemo 生成 YAML 代码，避免在 effect 中 setState
+  const code = useMemo(() => {
+    // 如果用户编辑过，使用本地编辑的代码
+    if (localCode !== null) {
+      return localCode;
+    }
+    
+    // 否则从 menu 生成 YAML
     try {
-      const yaml = exportMenuToYAML(menu);
-      setCode(yaml);
+      return exportMenuToYAML(menu);
     } catch (error) {
       console.error("生成 YAML 失败:", error);
-      setCode(
+      return (
         "# 生成 YAML 失败\n# " +
-          (error instanceof Error ? error.message : "未知错误")
+        (error instanceof Error ? error.message : "未知错误")
       );
     }
-  }, [menu]);
+  }, [menu, localCode]);
 
   const handleEditorChange = (value: string | undefined) => {
     if (value !== undefined) {
-      setCode(value);
+      setLocalCode(value);
       onSave?.(value);
     }
   };

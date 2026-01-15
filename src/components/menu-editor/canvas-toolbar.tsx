@@ -33,10 +33,10 @@ export function CanvasToolbar({
   onTogglePlayerInventory,
 }: CanvasToolbarProps) {
   return (
-    <div className="h-10 border-b bg-background/95 backdrop-blur">
+    <div className="h-10 min-h-10 shrink-0 border-b bg-background/95 backdrop-blur">
       <div className="flex items-center justify-between h-full px-4">
         {/* 左侧：视图切换 - 使用 Segmented Control 风格 */}
-        <div className="inline-flex items-center rounded-md bg-muted p-0.5">
+        <div className="inline-flex items-center rounded-md bg-muted p-0.5 shrink-0">
           <button
             className={cn(
               "inline-flex items-center justify-center rounded-sm px-3 h-7 text-xs font-medium transition-all",
@@ -65,72 +65,74 @@ export function CanvasToolbar({
           </button>
         </div>
 
-        {/* 右侧：辅助功能 */}
-        <div className="flex items-center gap-1">
-          {/* 网格显示 */}
-          {onToggleGrid && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn("h-8 w-8 p-0", showGrid && "bg-secondary")}
-                onClick={onToggleGrid}
-                title="切换网格显示"
-              >
-                <Grid3x3 className="h-4 w-4" />
-              </Button>
-              <Separator orientation="vertical" className="h-5" />
-            </>
-          )}
+        {/* 右侧：辅助功能 - 只在可视化模式显示 */}
+        {viewMode === "visual" && (
+          <div className="flex items-center gap-1 shrink-0">
+            {/* 网格显示 */}
+            {onToggleGrid && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn("h-8 w-8 p-0", showGrid && "bg-secondary")}
+                  onClick={onToggleGrid}
+                  title="切换网格显示"
+                >
+                  <Grid3x3 className="h-4 w-4" />
+                </Button>
+                <Separator orientation="vertical" className="h-5" />
+              </>
+            )}
 
-          {/* 玩家物品栏 */}
-          {onTogglePlayerInventory && (
-            <>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-8 w-8 p-0",
-                  showPlayerInventory && "bg-secondary"
-                )}
-                onClick={onTogglePlayerInventory}
-                title="切换玩家物品栏"
-              >
-                <Layers className="h-4 w-4" />
-              </Button>
-              <Separator orientation="vertical" className="h-5" />
-            </>
-          )}
+            {/* 玩家物品栏 */}
+            {onTogglePlayerInventory && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-8 w-8 p-0",
+                    showPlayerInventory && "bg-secondary"
+                  )}
+                  onClick={onTogglePlayerInventory}
+                  title="切换玩家物品栏"
+                >
+                  <Layers className="h-4 w-4" />
+                </Button>
+                <Separator orientation="vertical" className="h-5" />
+              </>
+            )}
 
-          {/* 缩放控制 */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="缩小"
-            disabled
-          >
-            <ZoomOut className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="放大"
-            disabled
-          >
-            <ZoomIn className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            title="适应窗口"
-            disabled
-          >
-            <Maximize2 className="h-4 w-4" />
-          </Button>
-        </div>
+            {/* 缩放控制 */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="缩小"
+              disabled
+            >
+              <ZoomOut className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="放大"
+              disabled
+            >
+              <ZoomIn className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="适应窗口"
+              disabled
+            >
+              <Maximize2 className="h-4 w-4" />
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );
