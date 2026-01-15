@@ -3,7 +3,10 @@
 import { Plus, Folder, ChevronRight, Settings } from "lucide-react";
 import { useSortable } from "@dnd-kit/sortable";
 import { useDroppable } from "@dnd-kit/core";
-import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import {
+  SortableContext,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
 import {
@@ -23,34 +26,34 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import type { MenuConfig, MenuGroup } from "@/types";
+import type { MenuGroup } from "@/types";
 import { DraggableMenuItem } from "./draggable-menu-item";
+import { useMenuStore } from "@/store/menu-store";
+import { useRouter } from "next/navigation";
+import { navigateToMenu } from "@/lib/config";
 
 interface DraggableMenuGroupProps {
   group: MenuGroup;
-  menus: MenuConfig[];
+  groupMenus: string[]; // 只传递菜单 IDs
   isOpen: boolean;
-  selectedMenuId?: string | null;
   onToggle: () => void;
-  onCreateMenu: (groupId: string) => void;
-  onDeleteMenu: (menuId: string) => void;
-  onRenameMenu: (menuId: string) => void;
-  onDeleteGroup: (groupId: string) => void;
-  onRenameGroup: (groupId: string) => void;
 }
 
 export function DraggableMenuGroup({
   group,
-  menus,
+  groupMenus,
   isOpen,
-  selectedMenuId,
   onToggle,
-  onCreateMenu,
-  onDeleteMenu,
-  onRenameMenu,
-  onDeleteGroup,
-  onRenameGroup,
 }: DraggableMenuGroupProps) {
+  const router = useRouter();
+
+  // 直接从 zustand 获取数据和 actions
+  const menus = useMenuStore((state) =>
+    state.menus.filter((m) => groupMenus.includes(m.id))
+  );
+  const createMenu = useMenuStore((state) => state.createMenu);
+  const deleteGroup = useMenuStore((state) => state.deleteGroup);
+  const renameGroup = useMenuStore((state) => state.renameGroup);
   const {
     attributes,
     listeners,
@@ -69,6 +72,20 @@ export function DraggableMenuGroup({
     transition,
     opacity: isDragging ? 0.5 : 1,
     cursor: isDragging ? "grabbing" : undefined,
+  };
+
+  // 处理在组中创建菜单
+  const handleCreateMenu = () => {
+    const menuId = createMenu(group.id);
+    router.push(navigateToMenu(menuId));
+  };
+
+  // 处理重命名组
+  const handleRenameGroup = () => {
+    const newName = prompt("请输入新的菜单组名称：", group.name);
+    if (newName && newName.trim()) {
+      renameGroup(group.id, newName.trim());
+    }
   };
 
   return (
@@ -107,7 +124,7 @@ export function DraggableMenuGroup({
                 className="h-6 w-6 shrink-0"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onCreateMenu(group.id);
+                  handleCreateMenu();
                 }}
                 title="在此组中创建菜单"
               >
@@ -125,11 +142,11 @@ export function DraggableMenuGroup({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onRenameGroup(group.id)}>
+                  <DropdownMenuItem onClick={handleRenameGroup}>
                     重命名
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => onDeleteGroup(group.id)}
+                    onClick={() => deleteGroup(group.id)}
                     className="text-destructive"
                   >
                     删除
@@ -145,13 +162,7 @@ export function DraggableMenuGroup({
                 strategy={verticalListSortingStrategy}
               >
                 {menus.map((menu) => (
-                  <DraggableMenuItem
-                    key={menu.id}
-                    menu={menu}
-                    isActive={selectedMenuId === menu.id}
-                    onDelete={onDeleteMenu}
-                    onRename={onRenameMenu}
-                  />
+                  <DraggableMenuItem key={menu.id} menu={menu} />
                 ))}
               </SortableContext>
             </SidebarMenu>
@@ -161,4 +172,3 @@ export function DraggableMenuGroup({
     </div>
   );
 }
-

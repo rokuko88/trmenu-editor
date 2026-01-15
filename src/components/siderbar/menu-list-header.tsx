@@ -10,24 +10,24 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarGroupLabel } from "@/components/ui/sidebar";
 import { Input } from "@/components/ui/input";
+import { useMenuStore } from "@/store/menu-store";
 
 interface MenuListHeaderProps {
-  menusCount: number;
   searchQuery: string;
   onSearchChange: (value: string) => void;
   onCreateMenu: () => void;
-  onCreateGroup: () => void;
   onClearAll: () => void;
 }
 
 export function MenuListHeader({
-  menusCount,
   searchQuery,
   onSearchChange,
   onCreateMenu,
-  onCreateGroup,
   onClearAll,
 }: MenuListHeaderProps) {
+  // 直接从 zustand 获取数据
+  const menusCount = useMenuStore((state) => state.menus.length);
+  const createGroup = useMenuStore((state) => state.createGroup);
   return (
     <>
       <div className="flex items-center justify-between px-2 mb-1">
@@ -70,7 +70,7 @@ export function MenuListHeader({
                 </span>
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={onCreateGroup}
+                onClick={createGroup}
                 className="cursor-pointer"
               >
                 <Folder className="h-4 w-4 mr-2" />

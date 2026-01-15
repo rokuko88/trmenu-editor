@@ -53,20 +53,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const pathname = usePathname();
   const { setOpen, open } = useSidebar();
 
-  // 使用 zustand store
+  // 使用 zustand store (只获取必要的数据)
   const menus = useMenuStore((state) => state.menus);
   const menuGroups = useMenuStore((state) => state.menuGroups);
-  const selectedMenuId = useMenuStore((state) => state.selectedMenuId);
-  const recentItems = useMenuStore((state) => state.recentItems);
   const setSelectedMenuId = useMenuStore((state) => state.setSelectedMenuId);
   const createMenu = useMenuStore((state) => state.createMenu);
-  const createGroup = useMenuStore((state) => state.createGroup);
-  const deleteMenu = useMenuStore((state) => state.deleteMenu);
-  const renameMenu = useMenuStore((state) => state.renameMenu);
-  const deleteGroup = useMenuStore((state) => state.deleteGroup);
-  const renameGroup = useMenuStore((state) => state.renameGroup);
   const handleMenuDragEnd = useMenuStore((state) => state.handleMenuDragEnd);
-  const clearRecent = useMenuStore((state) => state.clearRecent);
   const clearAllMenus = useMenuStore((state) => state.clearAllMenus);
 
   const [openGroups, setOpenGroups] = React.useState<string[]>([]);
@@ -103,32 +95,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     );
   };
 
-  // 创建菜单并导航
-  const handleCreateMenu = (groupId?: string) => {
-    const menuId = createMenu(groupId);
+  // 创建菜单并导航（只在未分组时需要）
+  const handleCreateMenu = () => {
+    const menuId = createMenu();
     router.push(navigateToMenu(menuId));
-  };
-
-  // 重命名菜单（带输入框）
-  const handleRenameMenu = (menuId: string) => {
-    const menu = menus.find((m) => m.id === menuId);
-    if (!menu) return;
-
-    const newName = prompt("请输入新的菜单名称：", menu.name);
-    if (newName && newName.trim()) {
-      renameMenu(menuId, newName.trim());
-    }
-  };
-
-  // 重命名菜单组（带输入框）
-  const handleRenameGroup = (groupId: string) => {
-    const group = menuGroups.find((g) => g.id === groupId);
-    if (!group) return;
-
-    const newName = prompt("请输入新的菜单组名称：", group.name);
-    if (newName && newName.trim()) {
-      renameGroup(groupId, newName.trim());
-    }
   };
 
   // 搜索过滤函数
@@ -144,20 +114,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     menus.filter((menu) => !menu.groupId).sort((a, b) => a.order - b.order)
   );
 
-  // 获取分组的菜单（按 order 排序 + 搜索过滤）
-  const getGroupMenus = (groupId: string) =>
+  // 获取分组的菜单 IDs（按 order 排序 + 搜索过滤）
+  const getGroupMenuIds = (groupId: string) =>
     filterMenusBySearch(
       menus
         .filter((menu) => menu.groupId === groupId)
         .sort((a, b) => a.order - b.order)
-    );
+    ).map((m) => m.id);
 
   // 获取排序后的菜单组（如果组内有匹配的菜单才显示）
   const sortedGroups = [...menuGroups]
     .sort((a, b) => a.order - b.order)
     .filter((group) => {
       if (!searchQuery.trim()) return true;
-      return getGroupMenus(group.id).length > 0;
+      return getGroupMenuIds(group.id).length > 0;
     });
 
   // 切换侧边栏展开/收起
@@ -199,19 +169,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 
         <SidebarContent>
           {/* 工作区 */}
-          <WorkspaceMenu
-            recentItems={recentItems}
-            onClearRecent={clearRecent}
-          />
+          <WorkspaceMenu />
 
           {/* 菜单列表 */}
           <SidebarGroup className="group-data-[collapsible=icon]:hidden py-0">
             <MenuListHeader
-              menusCount={menus.length}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
-              onCreateMenu={() => handleCreateMenu()}
-              onCreateGroup={createGroup}
+              onCreateMenu={handleCreateMenu}
               onClearAll={() => setShowClearDialog(true)}
             />
 
@@ -231,22 +196,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       strategy={verticalListSortingStrategy}
                     >
                       {sortedGroups.map((group) => {
-                        const groupMenus = getGroupMenus(group.id);
+                        const groupMenuIds = getGroupMenuIds(group.id);
                         const isOpen = openGroups.includes(group.id);
 
                         return (
                           <DraggableMenuGroup
                             key={group.id}
                             group={group}
-                            menus={groupMenus}
+                            groupMenus={groupMenuIds}
                             isOpen={isOpen}
-                            selectedMenuId={selectedMenuId}
                             onToggle={() => toggleGroup(group.id)}
-                            onCreateMenu={handleCreateMenu}
-                            onDeleteMenu={deleteMenu}
-                            onRenameMenu={handleRenameMenu}
-                            onDeleteGroup={deleteGroup}
-                            onRenameGroup={handleRenameGroup}
                           />
                         );
                       })}
@@ -258,13 +217,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       strategy={verticalListSortingStrategy}
                     >
                       {ungroupedMenus.map((menu) => (
-                        <DraggableMenuItem
-                          key={menu.id}
-                          menu={menu}
-                          isActive={selectedMenuId === menu.id}
-                          onDelete={deleteMenu}
-                          onRename={handleRenameMenu}
-                        />
+                        <DraggableMenuItem key={menu.id} menu={menu} />
                       ))}
                     </SortableContext>
                   </>

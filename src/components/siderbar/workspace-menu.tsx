@@ -18,22 +18,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { navigateToMenu } from "@/lib/config";
+import { useMenuStore } from "@/store/menu-store";
 
-interface WorkspaceMenuProps {
-  recentItems: Array<{
-    menuId: string;
-    menuName: string;
-    openedAt: string;
-  }>;
-  onClearRecent: () => void;
-}
-
-export function WorkspaceMenu({
-  recentItems,
-  onClearRecent,
-}: WorkspaceMenuProps) {
+export function WorkspaceMenu() {
   const router = useRouter();
   const pathname = usePathname();
+
+  // 直接从 zustand 获取数据
+  const recentItems = useMenuStore((state) => state.recentItems);
+  const clearRecent = useMenuStore((state) => state.clearRecent);
 
   return (
     <SidebarGroup className="py-0">
@@ -101,7 +94,7 @@ export function WorkspaceMenu({
                   ))}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
-                    onClick={onClearRecent}
+                    onClick={clearRecent}
                     className="text-destructive text-sm"
                   >
                     <X className="h-4 w-4 mr-2" />
