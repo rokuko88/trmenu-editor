@@ -41,7 +41,7 @@ export function SelectionToolbar({
       className={cn(
         "fixed bottom-8 left-1/2 -translate-x-1/2",
         "bg-card border shadow-lg rounded-lg",
-        "flex items-center gap-1 px-3 py-2",
+        "flex items-center gap-1 px-2 py-1",
         "animate-in slide-in-from-bottom-4 duration-200",
         className
       )}
@@ -98,22 +98,12 @@ export function SelectionToolbar({
       <Separator orientation="vertical" className="h-6" />
 
       {/* 编辑操作 */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onCopy}
-        className="h-8 px-3"
-      >
+      <Button variant="ghost" size="sm" onClick={onCopy} className="h-8 px-3">
         <Copy className="h-4 w-4 mr-1.5" />
         复制
       </Button>
 
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={onCut}
-        className="h-8 px-3"
-      >
+      <Button variant="ghost" size="sm" onClick={onCut} className="h-8 px-3">
         <Scissors className="h-4 w-4 mr-1.5" />
         剪切
       </Button>

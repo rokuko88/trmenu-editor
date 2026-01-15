@@ -11,6 +11,12 @@ interface MenuSlotProps {
   isDragOver: boolean;
   isDragging: boolean;
   isInSelection: boolean;
+  slotBorders?: {
+    borderTop?: boolean;
+    borderRight?: boolean;
+    borderBottom?: boolean;
+    borderLeft?: boolean;
+  };
   onSelect: (e?: React.MouseEvent) => void;
   onDragStart?: (e: React.DragEvent) => void;
   onDragEnd?: () => void;
@@ -24,6 +30,7 @@ export function MenuSlot({
   isDragOver,
   isDragging,
   isInSelection,
+  slotBorders,
   onSelect,
   onDragStart,
   onDragEnd,
@@ -32,21 +39,60 @@ export function MenuSlot({
   return (
     <div
       className={cn(
-        "relative aspect-square border transition-all",
-        "hover:border-primary/50 cursor-pointer group",
-        isSelected && "border-primary ring-2 ring-primary/20",
-        isInSelection && !isSelected && "border-primary/70 bg-primary/5 ring-1 ring-primary/10",
+        "relative aspect-square transition-colors",
+        "hover:border-primary/40 cursor-pointer group",
+        // 基础边框和圆角
+        "border border-border/40 rounded-sm",
+        // 选中态 - 移除圆角，避免边框断开
+        isInSelection && "rounded-none",
+        // 单独选中的物品
+        isSelected &&
+          !isInSelection &&
+          "border-primary ring-2 ring-primary/20 bg-primary/10 rounded-sm",
+        // 在选区内
+        isInSelection && "bg-primary/8",
+        // 拖拽悬停
         isDragOver && "border-primary bg-primary/5",
-        !item && "bg-background border-border/40 hover:bg-muted/50",
-        item && "bg-card border-border hover:border-border/80"
+        // 物品状态
+        !item && "bg-background hover:bg-muted/50",
+        item && "bg-card hover:border-border/80"
       )}
-      onClick={(e) => onSelect(e)}
+      style={
+        isInSelection && slotBorders
+          ? {
+              borderTopColor: slotBorders.borderTop
+                ? "hsl(var(--primary) / 0.6)"
+                : "transparent",
+              borderRightColor: slotBorders.borderRight
+                ? "hsl(var(--primary) / 0.6)"
+                : "transparent",
+              borderBottomColor: slotBorders.borderBottom
+                ? "hsl(var(--primary) / 0.6)"
+                : "transparent",
+              borderLeftColor: slotBorders.borderLeft
+                ? "hsl(var(--primary) / 0.6)"
+                : "transparent",
+              borderWidth: "2px",
+            }
+          : undefined
+      }
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect(e);
+      }}
     >
       {item ? (
         <div
           draggable
-          onDragStart={onDragStart}
+          onDragStart={(e) => {
+            e.stopPropagation();
+            onDragStart?.(e);
+          }}
           onDragEnd={onDragEnd}
+          onMouseDown={(e) => {
+            // 阻止物品拖拽时触发框选
+            e.stopPropagation();
+          }}
           className={cn(
             "w-full h-full",
             isDragging && "opacity-40 cursor-grabbing",

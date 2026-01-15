@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import type { MenuItem, MenuConfig } from "@/types";
 import { Plus, Copy, Clipboard, Trash2, Files } from "lucide-react";
 import {
@@ -190,12 +190,69 @@ export function MenuCanvas({
   const cols = 9;
 
   // 获取指定槽位的物品
-  const getItemAtSlot = (slot: number): MenuItem | undefined => {
-    return menu.items.find((item) => item.slot === slot);
-  };
+  const getItemAtSlot = useCallback(
+    (slot: number): MenuItem | undefined => {
+      return menu.items.find((item) => item.slot === slot);
+    },
+    [menu.items]
+  );
+
+  // 计算所有槽位的智能边框（使用 useMemo 缓存）
+  const slotBordersMap = useMemo(() => {
+    const map = new Map<
+      number,
+      {
+        borderTop: boolean;
+        borderRight: boolean;
+        borderBottom: boolean;
+        borderLeft: boolean;
+      }
+    >();
+
+    selectedSlots.forEach((slot) => {
+      const row = Math.floor(slot / cols);
+      const col = slot % cols;
+
+      const borders = {
+        borderTop: true,
+        borderRight: true,
+        borderBottom: true,
+        borderLeft: true,
+      };
+
+      // 检查上方槽位
+      if (row > 0) {
+        const topSlot = slot - cols;
+        if (selectedSlots.has(topSlot)) borders.borderTop = false;
+      }
+
+      // 检查右方槽位
+      if (col < cols - 1) {
+        const rightSlot = slot + 1;
+        if (selectedSlots.has(rightSlot)) borders.borderRight = false;
+      }
+
+      // 检查下方槽位
+      if (row < rows - 1) {
+        const bottomSlot = slot + cols;
+        if (selectedSlots.has(bottomSlot)) borders.borderBottom = false;
+      }
+
+      // 检查左方槽位
+      if (col > 0) {
+        const leftSlot = slot - 1;
+        if (selectedSlots.has(leftSlot)) borders.borderLeft = false;
+      }
+
+      map.set(slot, borders);
+    });
+
+    return map;
+  }, [selectedSlots, cols, rows]);
 
   // 处理拖拽开始
   const handleDragStart = (e: React.DragEvent, item: MenuItem) => {
+    e.stopPropagation(); // 阻止事件冒泡到容器的 mousedown
     setDraggedItem(item);
     e.dataTransfer.effectAllowed = "move";
   };
@@ -229,6 +286,7 @@ export function MenuCanvas({
     const isSelected = Boolean(item && item.id === selectedItemId);
     const isDragging = Boolean(draggedItem?.id === item?.id);
     const isInSelection = selectedSlots.has(slot);
+    const slotBorders = isInSelection ? slotBordersMap.get(slot) : undefined;
 
     return (
       <ContextMenu key={slot}>
@@ -245,13 +303,11 @@ export function MenuCanvas({
               isDragOver={isDragOver}
               isDragging={isDragging}
               isInSelection={Boolean(isInSelection)}
+              slotBorders={slotBorders}
               onSelect={(e?: React.MouseEvent) => {
-                if (e) {
-                  e.stopPropagation();
-                  if (e.ctrlKey || e.metaKey) {
-                    toggleSlot(slot, true);
-                    return;
-                  }
+                if (e && (e.ctrlKey || e.metaKey)) {
+                  toggleSlot(slot, true);
+                  return;
                 }
                 if (item) {
                   onSelectItem(item.id);
@@ -337,8 +393,11 @@ export function MenuCanvas({
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center p-8 bg-background relative">
-      <div className="w-full max-w-3xl space-y-4">
+    <div
+      className="flex-1 flex flex-col items-center justify-center p-8 bg-accent relative select-none"
+      onMouseDown={handleMouseDown}
+    >
+      <div className="w-full max-w-3xl space-y-4 pointer-events-none">
         {/* 菜单标题栏 */}
         <div className="flex items-center justify-between px-1">
           <div>
@@ -349,16 +408,14 @@ export function MenuCanvas({
           </div>
         </div>
 
-        {/* 菜单网格容器 */}
+        {/* Inventory 容器 */}
         <div
           ref={containerRef}
-          className="relative bg-muted/30 rounded-lg p-3 border select-none"
-          onMouseDown={handleMouseDown}
+          className="relative bg-card rounded-lg p-3 border pointer-events-auto"
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${cols}, 1fr)`,
             gridTemplateRows: `repeat(${rows}, 1fr)`,
-            gap: "2px",
           }}
         >
           {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
