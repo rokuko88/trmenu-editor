@@ -1,0 +1,114 @@
+"use client";
+
+import { ReactNode } from "react";
+import { useDraggable, useDroppable } from "@dnd-kit/core";
+import { cn } from "@/lib/utils";
+import { useDndMenu } from "./dnd-context";
+
+interface DraggableSlotProps {
+  slot: number;
+  children?: ReactNode;
+  isSelected: boolean;
+  isInSelection: boolean;
+  slotBorders?: {
+    borderTop: boolean;
+    borderRight: boolean;
+    borderBottom: boolean;
+    borderLeft: boolean;
+  };
+  onSelect?: (e?: React.MouseEvent) => void;
+}
+
+export function DraggableSlot({
+  slot,
+  children,
+  isSelected,
+  isInSelection,
+  slotBorders,
+  onSelect,
+}: DraggableSlotProps) {
+  const { draggedSlots, dragOverSlot } = useDndMenu();
+
+  // 使用 dnd-kit 的 draggable 和 droppable
+  const {
+    attributes,
+    listeners,
+    setNodeRef: setDraggableRef,
+  } = useDraggable({
+    id: slot.toString(),
+    disabled: !children, // 空槽位不可拖动
+  });
+
+  const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+    id: slot.toString(),
+  });
+
+  // 合并 refs
+  const setRefs = (element: HTMLDivElement | null) => {
+    setDraggableRef(element);
+    setDroppableRef(element);
+  };
+
+  const isBeingDragged = draggedSlots.has(slot);
+  const isDragOver = isOver || dragOverSlot === slot;
+
+  // 根据是否有智能边框来决定样式
+  const hasSmartBorders = slotBorders && isInSelection;
+
+  return (
+    <div
+      ref={setRefs}
+      data-slot={slot}
+      className={cn(
+        "relative aspect-square bg-background transition-all duration-150",
+        // 默认边框（没有智能边框时）
+        !hasSmartBorders && "border",
+        // 选中状态（单独选中，不在选区中）
+        isSelected && !isInSelection && "ring-2 ring-primary ring-offset-1",
+        // 拖动悬停状态
+        isDragOver &&
+          "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1",
+        // 正在被拖动
+        isBeingDragged && "opacity-40",
+        // 可拖动光标
+        children && "cursor-move",
+        // 默认状态边框颜色（没有被选中也没有在选区中）
+        !isSelected &&
+          !isInSelection &&
+          !isDragOver &&
+          "border-border/40 hover:border-border hover:bg-accent/50"
+      )}
+      style={{
+        // 智能边框（选区内相邻槽位的边缘才显示边框）
+        ...(hasSmartBorders && {
+          borderStyle: "solid",
+          borderColor: "hsl(var(--primary))",
+          borderTopWidth: slotBorders.borderTop ? "2px" : "0",
+          borderRightWidth: slotBorders.borderRight ? "2px" : "0",
+          borderBottomWidth: slotBorders.borderBottom ? "2px" : "0",
+          borderLeftWidth: slotBorders.borderLeft ? "2px" : "0",
+        }),
+      }}
+      onClick={onSelect}
+      {...attributes}
+      {...listeners}
+    >
+      {/* 槽位编号 */}
+      <span className="absolute top-0.5 left-0.5 text-[8px] text-muted-foreground/30 font-mono leading-none pointer-events-none select-none">
+        {slot}
+      </span>
+
+      {/* 物品内容 */}
+      {children && (
+        <div className="absolute inset-0 flex items-center justify-center p-1 pointer-events-none">
+          {children}
+        </div>
+      )}
+
+      {/* 拖动悬停指示器 */}
+      {isDragOver && !isBeingDragged && (
+        <div className="absolute inset-0 border-2 border-primary rounded-sm animate-pulse pointer-events-none" />
+      )}
+    </div>
+  );
+}

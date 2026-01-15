@@ -27,6 +27,16 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
     // 只在按下鼠标左键时开始
     if (e.button !== 0) return;
 
+    // 检查点击的目标元素
+    const target = e.target as HTMLElement;
+    
+    // 如果点击的是可拖动的槽位（带有 cursor-move 类），不启动框选
+    const slotElement = target.closest('[data-slot]') as HTMLElement;
+    if (slotElement && slotElement.classList.contains('cursor-move')) {
+      // 这是有物品的槽位，不启动框选，让拖动逻辑处理
+      return;
+    }
+
     const container = containerRef.current;
     if (!container) return;
 
@@ -168,6 +178,15 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
     [onSelectionChange]
   );
 
+  // 更新选中的槽位（用于移动后更新选区）
+  const updateSelectedSlots = useCallback(
+    (newSlots: Set<number>) => {
+      setSelectedSlots(newSlots);
+      onSelectionChange?.(Array.from(newSlots));
+    },
+    [onSelectionChange]
+  );
+
   return {
     selectedSlots,
     isSelecting,
@@ -176,5 +195,6 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
     handleMouseDown,
     clearSelection,
     toggleSlot,
+    updateSelectedSlots,
   };
 }

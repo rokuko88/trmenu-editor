@@ -19,7 +19,8 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { MenuSlot } from "./menu-slot";
+import { DndMenuProvider } from "./dnd-context";
+import { DraggableSlot } from "./draggable-slot";
 import { MenuItemDisplay } from "./menu-item";
 import { SelectionToolbar } from "./selection-toolbar";
 import { SelectionBox } from "./selection-box";
@@ -64,12 +65,9 @@ export function MenuCanvas({
   onMenuUpdate,
   clipboard,
 }: MenuCanvasProps) {
-  const [draggedItem, setDraggedItem] = useState<MenuItem | null>(null);
-  const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
   const [showPlayerInventory, setShowPlayerInventory] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("visual");
   const [showGrid, setShowGrid] = useState(false);
-  // const [batchClipboard, setBatchClipboard] = useState<{ items: MenuItem[]; mode: "copy" | "cut" } | null>(null);
 
   // 使用框选 hook
   const {
@@ -80,7 +78,12 @@ export function MenuCanvas({
     handleMouseDown,
     clearSelection,
     toggleSlot,
+    updateSelectedSlots,
   } = useSelection();
+
+  // 计算行数和列数（提前计算，供后续使用）
+  const rows = menu.size / 9;
+  const cols = 9;
 
   // 批量操作：复制
   const handleBatchCopy = useCallback(() => {
@@ -113,14 +116,59 @@ export function MenuCanvas({
     }
   }, [menu.items, selectedSlots, onBatchDelete, clearSelection]);
 
-  // 批量操作：移动
+  // 批量拖动移动处理（新版本）
+  const handleBatchDragMove = useCallback(
+    (slotMap: Map<number, number>) => {
+      // 执行移动
+      slotMap.forEach((newSlot, oldSlot) => {
+        const item = menu.items.find((i) => i.slot === oldSlot);
+        if (item) {
+          onItemMove(item.id, newSlot);
+        }
+      });
+
+      // 更新选区
+      const newSelectedSlots = new Set(slotMap.values());
+      updateSelectedSlots(newSelectedSlots);
+    },
+    [menu.items, onItemMove, updateSelectedSlots]
+  );
+
+  // 批量操作：移动（键盘快捷键）
   const handleBatchMove = useCallback(
     (direction: "up" | "down" | "left" | "right") => {
       if (selectedSlots.size > 0 && onBatchMove) {
         onBatchMove(Array.from(selectedSlots), direction);
+
+        // 移动后更新选区到新位置
+        const newSelectedSlots = new Set<number>();
+        selectedSlots.forEach((slot) => {
+          const row = Math.floor(slot / cols);
+          const col = slot % cols;
+          let newSlot = slot;
+
+          switch (direction) {
+            case "up":
+              if (row > 0) newSlot = slot - cols;
+              break;
+            case "down":
+              if (row < rows - 1) newSlot = slot + cols;
+              break;
+            case "left":
+              if (col > 0) newSlot = slot - 1;
+              break;
+            case "right":
+              if (col < cols - 1) newSlot = slot + 1;
+              break;
+          }
+
+          newSelectedSlots.add(newSlot);
+        });
+
+        updateSelectedSlots(newSelectedSlots);
       }
     },
-    [selectedSlots, onBatchMove]
+    [selectedSlots, onBatchMove, cols, rows, updateSelectedSlots]
   );
 
   // 快捷键支持
@@ -204,18 +252,6 @@ export function MenuCanvas({
     clearSelection,
   ]);
 
-  // 计算行数和列数
-  const rows = menu.size / 9;
-  const cols = 9;
-
-  // 获取指定槽位的物品
-  const getItemAtSlot = useCallback(
-    (slot: number): MenuItem | undefined => {
-      return menu.items.find((item) => item.slot === slot);
-    },
-    [menu.items]
-  );
-
   // 计算所有槽位的智能边框（使用 useMemo 缓存）
   const slotBordersMap = useMemo(() => {
     const map = new Map<
@@ -269,79 +305,59 @@ export function MenuCanvas({
     return map;
   }, [selectedSlots, cols, rows]);
 
-  // 处理拖拽开始
-  const handleDragStart = (e: React.DragEvent, item: MenuItem) => {
-    e.stopPropagation(); // 阻止事件冒泡到容器的 mousedown
-    setDraggedItem(item);
-    e.dataTransfer.effectAllowed = "move";
-  };
-
-  // 处理拖拽结束
-  const handleDragEnd = () => {
-    setDraggedItem(null);
-    setDragOverSlot(null);
-  };
-
-  // 处理拖拽悬停
-  const handleDragOver = (e: React.DragEvent, slot: number) => {
-    e.preventDefault();
-    setDragOverSlot(slot);
-  };
-
-  // 处理放置
-  const handleDrop = (e: React.DragEvent, slot: number) => {
-    e.preventDefault();
-    if (draggedItem) {
-      onItemMove(draggedItem.id, slot);
-    }
-    setDraggedItem(null);
-    setDragOverSlot(null);
-  };
+  // 获取指定槽位的物品
+  const getItemAtSlot = useCallback(
+    (slot: number): MenuItem | undefined => {
+      return menu.items.find((item) => item.slot === slot);
+    },
+    [menu.items]
+  );
 
   // 渲染槽位
   const renderSlot = (slot: number) => {
     const item = getItemAtSlot(slot);
-    const isDragOver = dragOverSlot === slot;
     const isSelected = Boolean(item && item.id === selectedItemId);
-    const isDragging = Boolean(draggedItem?.id === item?.id);
     const isInSelection = selectedSlots.has(slot);
     const slotBorders = isInSelection ? slotBordersMap.get(slot) : undefined;
 
     return (
       <ContextMenu key={slot}>
         <ContextMenuTrigger>
-          <div
-            data-slot={slot}
-            onDragOver={(e) => handleDragOver(e, slot)}
-            onDrop={(e) => handleDrop(e, slot)}
-          >
-            <MenuSlot
-              slot={slot}
-              item={item}
-              isSelected={isSelected}
-              isDragOver={isDragOver}
-              isDragging={isDragging}
-              isInSelection={Boolean(isInSelection)}
-              slotBorders={slotBorders}
-              onSelect={(e?: React.MouseEvent) => {
-                if (e && (e.ctrlKey || e.metaKey)) {
-                  toggleSlot(slot, true);
-                  return;
+          <DraggableSlot
+            slot={slot}
+            isSelected={isSelected}
+            isInSelection={isInSelection}
+            slotBorders={slotBorders}
+            onSelect={(e?: React.MouseEvent) => {
+              if (e && (e.ctrlKey || e.metaKey)) {
+                // Ctrl+点击：添加或移除槽位
+                // 如果当前有单独选中的物品，先将其槽位添加到选区
+                if (selectedItemId && !selectedSlots.size) {
+                  const currentItem = menu.items.find((i) => i.id === selectedItemId);
+                  if (currentItem) {
+                    updateSelectedSlots(new Set([currentItem.slot, slot]));
+                    onSelectItem(null);
+                    return;
+                  }
                 }
+                toggleSlot(slot, true);
+                // 如果添加到选区，清除单独选中的物品
                 if (item) {
-                  onSelectItem(item.id);
-                  clearSelection();
-                } else {
-                  onSlotClick(slot);
-                  clearSelection();
+                  onSelectItem(null);
                 }
-              }}
-              onDragStart={(e) => item && handleDragStart(e, item)}
-              onDragEnd={handleDragEnd}
-            >
-              {item && <MenuItemDisplay item={item} />}
-            </MenuSlot>
-          </div>
+                return;
+              }
+              if (item) {
+                onSelectItem(item.id);
+                clearSelection();
+              } else {
+                onSlotClick(slot);
+                clearSelection();
+              }
+            }}
+          >
+            {item && <MenuItemDisplay item={item} />}
+          </DraggableSlot>
         </ContextMenuTrigger>
 
         {/* 右键菜单 */}
@@ -425,176 +441,185 @@ export function MenuCanvas({
   };
 
   return (
-    <div className="flex-1 flex flex-col bg-accent relative">
-      {/* Canvas 工具栏 */}
-      <CanvasToolbar
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
-        showGrid={showGrid}
-        onToggleGrid={() => setShowGrid(!showGrid)}
-        showPlayerInventory={showPlayerInventory}
-        onTogglePlayerInventory={() =>
-          setShowPlayerInventory(!showPlayerInventory)
-        }
-      />
+    <DndMenuProvider
+      menuItems={menu.items}
+      selectedSlots={selectedSlots}
+      cols={cols}
+      rows={rows}
+      onItemMove={onItemMove}
+      onBatchMove={handleBatchDragMove}
+    >
+      <div className="flex-1 flex flex-col bg-accent relative">
+        {/* Canvas 工具栏 */}
+        <CanvasToolbar
+          viewMode={viewMode}
+          onViewModeChange={setViewMode}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+          showPlayerInventory={showPlayerInventory}
+          onTogglePlayerInventory={() =>
+            setShowPlayerInventory(!showPlayerInventory)
+          }
+        />
 
-      {/* 画布区域 */}
-      {viewMode === "code" ? (
-        <div className="flex-1 overflow-hidden">
-          <CodeEditor menu={menu} />
-        </div>
-      ) : (
-        <div
-          className="flex-1 flex flex-col items-center justify-center p-8 select-none relative"
-          onMouseDown={handleMouseDown}
-          style={{
-            ...(showGrid && {
-              backgroundImage:
-                "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-              backgroundSize: "20px 20px",
-              backgroundPosition: "center center",
-            }),
-          }}
-        >
-          <div className="w-full max-w-xl space-y-4 pointer-events-none relative z-10">
-            {/* 菜单标题栏 */}
-            <div className="flex items-center justify-between px-1">
-              <div>
-                <h2 className="text-sm font-medium">{menu.title}</h2>
-                <p className="text-xs text-muted-foreground">
-                  {menu.type} • {menu.size} 槽位 ({rows} 行) •{" "}
-                  {menu.items.length} 项
-                </p>
-              </div>
-            </div>
-
-            {/* Inventory 容器 */}
-            <div className="space-y-0 pointer-events-auto">
-              <div
-                ref={containerRef}
-                className={cn(
-                  "relative bg-card p-2 border transition-all",
-                  canAddRow ? "rounded-t-sm" : "rounded-sm"
-                )}
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                  gridTemplateRows: `repeat(${rows}, 1fr)`,
-                }}
-              >
-                {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
-
-                {/* 框选矩形 */}
-                {isSelecting && selectionRect && (
-                  <SelectionBox
-                    startX={selectionRect.startX}
-                    startY={selectionRect.startY}
-                    endX={selectionRect.endX}
-                    endY={selectionRect.endY}
-                  />
-                )}
-              </div>
-
-              {/* 添加行按钮 */}
-              {canAddRow && !showPlayerInventory && (
-                <Button
-                  variant="outline"
-                  className="w-full h-10 rounded-t-none border-t-0 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                  onClick={handleAddRow}
-                >
-                  <Plus className="h-3.5 w-3.5 mr-1.5" />
-                  添加一行 ({rows + 1}/{maxRows})
-                </Button>
-              )}
-
-              {/* 玩家物品栏切换按钮 */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="w-full h-8 rounded-t-none text-xs text-muted-foreground hover:text-foreground"
-                onClick={() => setShowPlayerInventory(!showPlayerInventory)}
-              >
-                {showPlayerInventory ? (
-                  <>
-                    <ChevronUp className="h-3.5 w-3.5 mr-1.5" />
-                    隐藏玩家物品栏
-                  </>
-                ) : (
-                  <>
-                    <ChevronDown className="h-3.5 w-3.5 mr-1.5" />
-                    显示玩家物品栏
-                  </>
-                )}
-              </Button>
-
-              {/* 玩家物品栏 */}
-              {showPlayerInventory && (
-                <div className="space-y-2">
-                  <div className="px-1">
-                    <p className="text-xs text-muted-foreground">
-                      玩家物品栏（仅预览）
-                    </p>
-                  </div>
-
-                  {/* 主物品栏 (3行9列) */}
-                  <div
-                    className="bg-card rounded-sm p-2 border opacity-50"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: `repeat(9, 1fr)`,
-                      gridTemplateRows: `repeat(3, 1fr)`,
-                    }}
-                  >
-                    {Array.from({ length: 27 }, (_, i) => (
-                      <div
-                        key={`player-${i}`}
-                        className="relative aspect-square border border-border/40 bg-background"
-                      >
-                        <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
-                          {i}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 快捷栏 (1行9列) */}
-                  <div
-                    className="bg-card rounded-sm p-2 border opacity-50"
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: `repeat(9, 1fr)`,
-                      gridTemplateRows: `repeat(1, 1fr)`,
-                    }}
-                  >
-                    {Array.from({ length: 9 }, (_, i) => (
-                      <div
-                        key={`hotbar-${i}`}
-                        className="relative aspect-square border border-border/40 bg-background"
-                      >
-                        <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
-                          {i}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
+        {/* 画布区域 */}
+        {viewMode === "code" ? (
+          <div className="flex-1 overflow-hidden">
+            <CodeEditor menu={menu} />
           </div>
+        ) : (
+          <div
+            className="flex-1 flex flex-col items-center justify-center p-8 select-none relative"
+            onMouseDown={handleMouseDown}
+            style={{
+              ...(showGrid && {
+                backgroundImage:
+                  "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+                backgroundSize: "20px 20px",
+                backgroundPosition: "center center",
+              }),
+            }}
+          >
+            <div className="w-full max-w-xl space-y-4 pointer-events-none relative z-10">
+              {/* 菜单标题栏 */}
+              <div className="flex items-center justify-between px-1">
+                <div>
+                  <h2 className="text-sm font-medium">{menu.title}</h2>
+                  <p className="text-xs text-muted-foreground">
+                    {menu.type} • {menu.size} 槽位 ({rows} 行) •{" "}
+                    {menu.items.length} 项
+                  </p>
+                </div>
+              </div>
 
-          {/* 批量操作工具栏 */}
-          {viewMode === "visual" && (
-            <SelectionToolbar
-              selectedCount={selectedSlots.size}
-              onCopy={handleBatchCopy}
-              onCut={handleBatchCut}
-              onDelete={handleBatchDelete}
-              onMove={handleBatchMove}
-              onClear={clearSelection}
-            />
-          )}
-        </div>
-      )}
-    </div>
+              {/* Inventory 容器 */}
+              <div className="space-y-0 pointer-events-auto">
+                <div
+                  ref={containerRef}
+                  className={cn(
+                    "relative bg-card p-2 border transition-all",
+                    canAddRow ? "rounded-t-sm" : "rounded-sm"
+                  )}
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+                    gridTemplateRows: `repeat(${rows}, 1fr)`,
+                  }}
+                >
+                  {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
+
+                  {/* 框选矩形 */}
+                  {isSelecting && selectionRect && (
+                    <SelectionBox
+                      startX={selectionRect.startX}
+                      startY={selectionRect.startY}
+                      endX={selectionRect.endX}
+                      endY={selectionRect.endY}
+                    />
+                  )}
+                </div>
+
+                {/* 添加行按钮 */}
+                {canAddRow && !showPlayerInventory && (
+                  <Button
+                    variant="outline"
+                    className="w-full h-10 rounded-t-none border-t-0 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
+                    onClick={handleAddRow}
+                  >
+                    <Plus className="h-3.5 w-3.5 mr-1.5" />
+                    添加一行 ({rows + 1}/{maxRows})
+                  </Button>
+                )}
+
+                {/* 玩家物品栏切换按钮 */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full h-8 rounded-t-none text-xs text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowPlayerInventory(!showPlayerInventory)}
+                >
+                  {showPlayerInventory ? (
+                    <>
+                      <ChevronUp className="h-3.5 w-3.5 mr-1.5" />
+                      隐藏玩家物品栏
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3.5 w-3.5 mr-1.5" />
+                      显示玩家物品栏
+                    </>
+                  )}
+                </Button>
+
+                {/* 玩家物品栏 */}
+                {showPlayerInventory && (
+                  <div className="space-y-2">
+                    <div className="px-1">
+                      <p className="text-xs text-muted-foreground">
+                        玩家物品栏（仅预览）
+                      </p>
+                    </div>
+
+                    {/* 主物品栏 (3行9列) */}
+                    <div
+                      className="bg-card rounded-sm p-2 border opacity-50"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: `repeat(9, 1fr)`,
+                        gridTemplateRows: `repeat(3, 1fr)`,
+                      }}
+                    >
+                      {Array.from({ length: 27 }, (_, i) => (
+                        <div
+                          key={`player-${i}`}
+                          className="relative aspect-square border border-border/40 bg-background"
+                        >
+                          <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
+                            {i}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* 快捷栏 (1行9列) */}
+                    <div
+                      className="bg-card rounded-sm p-2 border opacity-50"
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: `repeat(9, 1fr)`,
+                        gridTemplateRows: `repeat(1, 1fr)`,
+                      }}
+                    >
+                      {Array.from({ length: 9 }, (_, i) => (
+                        <div
+                          key={`hotbar-${i}`}
+                          className="relative aspect-square border border-border/40 bg-background"
+                        >
+                          <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
+                            {i}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 批量操作工具栏 */}
+            {viewMode === "visual" && (
+              <SelectionToolbar
+                selectedCount={selectedSlots.size}
+                onCopy={handleBatchCopy}
+                onCut={handleBatchCut}
+                onDelete={handleBatchDelete}
+                onMove={handleBatchMove}
+                onClear={clearSelection}
+              />
+            )}
+          </div>
+        )}
+      </div>
+    </DndMenuProvider>
   );
 }
