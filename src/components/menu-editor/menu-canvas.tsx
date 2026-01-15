@@ -333,7 +333,9 @@ export function MenuCanvas({
                 // Ctrl+点击：添加或移除槽位
                 // 如果当前有单独选中的物品，先将其槽位添加到选区
                 if (selectedItemId && !selectedSlots.size) {
-                  const currentItem = menu.items.find((i) => i.id === selectedItemId);
+                  const currentItem = menu.items.find(
+                    (i) => i.id === selectedItemId
+                  );
                   if (currentItem) {
                     updateSelectedSlots(new Set([currentItem.slot, slot]));
                     onSelectItem(null);
