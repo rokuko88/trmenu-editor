@@ -2,3 +2,7 @@ export { EditorToolbar } from "./editor-toolbar";
 export { MenuCanvas } from "./menu-canvas";
 export { PropertiesPanel } from "./properties-panel";
 export { QuickActions } from "./quick-actions";
+export { MenuSlot } from "./menu-slot";
+export { MenuItemDisplay } from "./menu-item";
+export { SelectionToolbar } from "./selection-toolbar";
+export { SelectionBox } from "./selection-box";

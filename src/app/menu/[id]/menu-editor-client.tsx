@@ -341,6 +341,74 @@ export default function MenuEditorClient() {
     addMenuItem(menuId, clonedItem);
   };
 
+  // 批量删除
+  const handleBatchDelete = (itemIds: string[]) => {
+    if (!currentMenu) return;
+
+    const shouldDelete = confirm(`确定要删除选中的 ${itemIds.length} 个物品吗？`);
+    if (!shouldDelete) return;
+
+    itemIds.forEach((itemId) => {
+      deleteMenuItem(menuId, itemId);
+    });
+    setSelectedItemId(null);
+  };
+
+  // 批量移动
+  const handleBatchMove = (
+    slots: number[],
+    direction: "up" | "down" | "left" | "right"
+  ) => {
+    if (!currentMenu) return;
+
+    const cols = 9;
+    const rows = currentMenu.size / 9;
+
+    // 计算每个槽位的新位置
+    const movements = slots.map((slot) => {
+      let newSlot = slot;
+      const currentRow = Math.floor(slot / cols);
+      const currentCol = slot % cols;
+
+      switch (direction) {
+        case "up":
+          if (currentRow > 0) newSlot = slot - cols;
+          break;
+        case "down":
+          if (currentRow < rows - 1) newSlot = slot + cols;
+          break;
+        case "left":
+          if (currentCol > 0) newSlot = slot - 1;
+          break;
+        case "right":
+          if (currentCol < cols - 1) newSlot = slot + 1;
+          break;
+      }
+
+      return { oldSlot: slot, newSlot };
+    });
+
+    // 检查是否有冲突
+    const targetSlots = movements.map((m) => m.newSlot);
+    const hasConflict = targetSlots.some((targetSlot) => {
+      const item = currentMenu.items.find((i) => i.slot === targetSlot);
+      return item && !slots.includes(targetSlot);
+    });
+
+    if (hasConflict) {
+      alert("目标位置有物品，无法移动");
+      return;
+    }
+
+    // 执行移动
+    movements.forEach(({ oldSlot, newSlot }) => {
+      const item = currentMenu.items.find((i) => i.slot === oldSlot);
+      if (item && oldSlot !== newSlot) {
+        moveMenuItem(menuId, item.id, newSlot);
+      }
+    });
+  };
+
   // 等待 menuId 加载
   if (!menuId) {
     return (
@@ -388,6 +456,8 @@ export default function MenuEditorClient() {
             onItemPaste={handlePasteItem}
             onItemDelete={handleItemDelete}
             onItemClone={handleCloneItem}
+            onBatchDelete={handleBatchDelete}
+            onBatchMove={handleBatchMove}
             clipboard={clipboard}
           />
 

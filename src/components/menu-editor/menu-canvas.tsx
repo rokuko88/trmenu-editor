@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { MenuItem, MenuConfig } from "@/types";
-import { cn } from "@/lib/utils";
-import { Plus, Copy, Clipboard, Trash2, Files, Box } from "lucide-react";
+import { Plus, Copy, Clipboard, Trash2, Files } from "lucide-react";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -11,6 +10,11 @@ import {
   ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import { MenuSlot } from "./menu-slot";
+import { MenuItemDisplay } from "./menu-item";
+import { SelectionToolbar } from "./selection-toolbar";
+import { SelectionBox } from "./selection-box";
+import { useSelection } from "@/hooks/use-selection";
 
 interface MenuCanvasProps {
   menu: MenuConfig;
@@ -22,6 +26,11 @@ interface MenuCanvasProps {
   onItemPaste?: (slot: number) => void;
   onItemDelete?: (itemId: string) => void;
   onItemClone?: (item: MenuItem, targetSlot: number) => void;
+  onBatchDelete?: (itemIds: string[]) => void;
+  onBatchMove?: (
+    slots: number[],
+    direction: "up" | "down" | "left" | "right"
+  ) => void;
   clipboard?: MenuItem | null;
 }
 
@@ -35,38 +44,127 @@ export function MenuCanvas({
   onItemPaste,
   onItemDelete,
   onItemClone,
+  onBatchDelete,
+  onBatchMove,
   clipboard,
 }: MenuCanvasProps) {
   const [draggedItem, setDraggedItem] = useState<MenuItem | null>(null);
   const [dragOverSlot, setDragOverSlot] = useState<number | null>(null);
+  // const [batchClipboard, setBatchClipboard] = useState<{ items: MenuItem[]; mode: "copy" | "cut" } | null>(null);
+
+  // 使用框选 hook
+  const {
+    selectedSlots,
+    isSelecting,
+    selectionRect,
+    containerRef,
+    handleMouseDown,
+    clearSelection,
+    toggleSlot,
+  } = useSelection();
+
+  // 批量操作：复制
+  const handleBatchCopy = useCallback(() => {
+    const items = menu.items.filter((item) => selectedSlots.has(item.slot));
+    if (items.length > 0) {
+      // setBatchClipboard({ items, mode: "copy" });
+      // TODO: 实现批量复制到剪贴板
+      console.log("批量复制:", items);
+    }
+  }, [menu.items, selectedSlots]);
+
+  // 批量操作：剪切
+  const handleBatchCut = useCallback(() => {
+    const items = menu.items.filter((item) => selectedSlots.has(item.slot));
+    if (items.length > 0) {
+      // setBatchClipboard({ items, mode: "cut" });
+      // TODO: 实现批量剪切到剪贴板
+      console.log("批量剪切:", items);
+    }
+  }, [menu.items, selectedSlots]);
+
+  // 批量操作：删除
+  const handleBatchDelete = useCallback(() => {
+    const itemIds = menu.items
+      .filter((item) => selectedSlots.has(item.slot))
+      .map((item) => item.id);
+    if (itemIds.length > 0 && onBatchDelete) {
+      onBatchDelete(itemIds);
+      clearSelection();
+    }
+  }, [menu.items, selectedSlots, onBatchDelete, clearSelection]);
+
+  // 批量操作：移动
+  const handleBatchMove = useCallback(
+    (direction: "up" | "down" | "left" | "right") => {
+      if (selectedSlots.size > 0 && onBatchMove) {
+        onBatchMove(Array.from(selectedSlots), direction);
+      }
+    },
+    [selectedSlots, onBatchMove]
+  );
 
   // 快捷键支持
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Ctrl/Cmd + C - 复制
-      if ((e.ctrlKey || e.metaKey) && e.key === "c") {
-        const item = menu.items.find((i) => i.id === selectedItemId);
-        if (item && onItemCopy) {
+      // 批量选择模式
+      if (selectedSlots.size > 0) {
+        // Ctrl/Cmd + C - 复制选中的项
+        if ((e.ctrlKey || e.metaKey) && e.key === "c") {
           e.preventDefault();
-          onItemCopy(item);
+          handleBatchCopy();
+          return;
+        }
+
+        // Ctrl/Cmd + X - 剪切选中的项
+        if ((e.ctrlKey || e.metaKey) && e.key === "x") {
+          e.preventDefault();
+          handleBatchCut();
+          return;
+        }
+
+        // Delete - 删除选中的项
+        if (e.key === "Delete") {
+          e.preventDefault();
+          handleBatchDelete();
+          return;
+        }
+
+        // Escape - 取消选择
+        if (e.key === "Escape") {
+          e.preventDefault();
+          clearSelection();
+          return;
         }
       }
 
-      // Ctrl/Cmd + V - 粘贴
-      if ((e.ctrlKey || e.metaKey) && e.key === "v") {
-        if (clipboard && onItemPaste) {
-          e.preventDefault();
+      // 单个物品操作
+      if (selectedItemId && selectedSlots.size === 0) {
+        // Ctrl/Cmd + C - 复制
+        if ((e.ctrlKey || e.metaKey) && e.key === "c") {
           const item = menu.items.find((i) => i.id === selectedItemId);
-          const targetSlot = item?.slot ?? 0;
-          onItemPaste(targetSlot);
+          if (item && onItemCopy) {
+            e.preventDefault();
+            onItemCopy(item);
+          }
         }
-      }
 
-      // Delete - 删除
-      if (e.key === "Delete") {
-        if (selectedItemId && onItemDelete) {
-          e.preventDefault();
-          onItemDelete(selectedItemId);
+        // Ctrl/Cmd + V - 粘贴
+        if ((e.ctrlKey || e.metaKey) && e.key === "v") {
+          if (clipboard && onItemPaste) {
+            e.preventDefault();
+            const item = menu.items.find((i) => i.id === selectedItemId);
+            const targetSlot = item?.slot ?? 0;
+            onItemPaste(targetSlot);
+          }
+        }
+
+        // Delete - 删除
+        if (e.key === "Delete") {
+          if (onItemDelete) {
+            e.preventDefault();
+            onItemDelete(selectedItemId);
+          }
         }
       }
     };
@@ -75,11 +173,16 @@ export function MenuCanvas({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     selectedItemId,
+    selectedSlots,
     clipboard,
     menu.items,
     onItemCopy,
     onItemPaste,
     onItemDelete,
+    handleBatchCopy,
+    handleBatchCut,
+    handleBatchDelete,
+    clearSelection,
   ]);
 
   // 计算行数和列数
@@ -123,76 +226,46 @@ export function MenuCanvas({
   const renderSlot = (slot: number) => {
     const item = getItemAtSlot(slot);
     const isDragOver = dragOverSlot === slot;
-    const isSelected = item && item.id === selectedItemId;
-    const isDragging = draggedItem?.id === item?.id;
+    const isSelected = Boolean(item && item.id === selectedItemId);
+    const isDragging = Boolean(draggedItem?.id === item?.id);
+    const isInSelection = selectedSlots.has(slot);
 
     return (
       <ContextMenu key={slot}>
         <ContextMenuTrigger>
           <div
-            className={cn(
-              "relative aspect-square border transition-all",
-              "hover:border-primary/50 cursor-pointer group",
-              isSelected && "border-primary ring-2 ring-primary/20",
-              isDragOver && "border-primary bg-primary/5",
-              !item && "bg-background border-border/40 hover:bg-muted/50",
-              item && "bg-card border-border hover:border-border/80"
-            )}
-            onClick={() => {
-              if (item) {
-                onSelectItem(item.id);
-              } else {
-                onSlotClick(slot);
-              }
-            }}
+            data-slot={slot}
             onDragOver={(e) => handleDragOver(e, slot)}
             onDrop={(e) => handleDrop(e, slot)}
           >
-            {item ? (
-              <div
-                draggable
-                onDragStart={(e) => handleDragStart(e, item)}
-                onDragEnd={handleDragEnd}
-                className={cn(
-                  "w-full h-full flex flex-col items-center justify-center p-2",
-                  isDragging && "opacity-40 cursor-grabbing",
-                  "cursor-grab active:cursor-grabbing"
-                )}
-              >
-                {/* 物品图标 */}
-                <div className="flex items-center justify-center">
-                  <Box strokeWidth={3} className="h-4 w-4 text-foreground/70" />
-                </div>
-
-                {/* 物品材质名称（简短显示） */}
-                <div className="text-[9px] text-muted-foreground font-mono mt-1 truncate max-w-full">
-                  {getShortMaterial(item.material)}
-                </div>
-
-                {/* 物品数量 */}
-                {item.amount && item.amount > 1 && (
-                  <span className="absolute bottom-1 right-1 text-[10px] font-medium text-foreground/80 bg-background/80 rounded px-1 leading-none">
-                    {item.amount}
-                  </span>
-                )}
-
-                {/* 自定义模型数据标识 */}
-                {item.customModelData && (
-                  <span className="absolute top-1 right-1 text-[9px] text-muted-foreground/70 bg-background/80 rounded px-1 leading-none font-mono">
-                    #{item.customModelData}
-                  </span>
-                )}
-              </div>
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors">
-                <Plus className="h-4 w-4" />
-              </div>
-            )}
-
-            {/* 槽位号 */}
-            <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
-              {slot}
-            </span>
+            <MenuSlot
+              slot={slot}
+              item={item}
+              isSelected={isSelected}
+              isDragOver={isDragOver}
+              isDragging={isDragging}
+              isInSelection={Boolean(isInSelection)}
+              onSelect={(e?: React.MouseEvent) => {
+                if (e) {
+                  e.stopPropagation();
+                  if (e.ctrlKey || e.metaKey) {
+                    toggleSlot(slot, true);
+                    return;
+                  }
+                }
+                if (item) {
+                  onSelectItem(item.id);
+                  clearSelection();
+                } else {
+                  onSlotClick(slot);
+                  clearSelection();
+                }
+              }}
+              onDragStart={(e) => item && handleDragStart(e, item)}
+              onDragEnd={handleDragEnd}
+            >
+              {item && <MenuItemDisplay item={item} />}
+            </MenuSlot>
           </div>
         </ContextMenuTrigger>
 
@@ -276,9 +349,11 @@ export function MenuCanvas({
           </div>
         </div>
 
-        {/* 菜单网格 */}
+        {/* 菜单网格容器 */}
         <div
-          className="bg-muted/30 rounded-lg p-3 border"
+          ref={containerRef}
+          className="relative bg-muted/30 rounded-lg p-3 border select-none"
+          onMouseDown={handleMouseDown}
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${cols}, 1fr)`,
@@ -287,21 +362,28 @@ export function MenuCanvas({
           }}
         >
           {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
+
+          {/* 框选矩形 */}
+          {isSelecting && selectionRect && (
+            <SelectionBox
+              startX={selectionRect.startX}
+              startY={selectionRect.startY}
+              endX={selectionRect.endX}
+              endY={selectionRect.endY}
+            />
+          )}
         </div>
       </div>
+
+      {/* 批量操作工具栏 */}
+      <SelectionToolbar
+        selectedCount={selectedSlots.size}
+        onCopy={handleBatchCopy}
+        onCut={handleBatchCut}
+        onDelete={handleBatchDelete}
+        onMove={handleBatchMove}
+        onClear={clearSelection}
+      />
     </div>
   );
-}
-
-// 获取简短的材质名称
-function getShortMaterial(material: string): string {
-  // 移除常见前缀，让名称更简短
-  const parts = material.split("_");
-  if (parts.length > 2) {
-    return parts.slice(-2).join("_");
-  }
-  if (parts.length > 1) {
-    return parts.join("_");
-  }
-  return material.slice(0, 8);
 }
