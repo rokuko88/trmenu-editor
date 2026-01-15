@@ -64,7 +64,7 @@ import type { MenuConfig } from "@/types";
 import { DraggableMenuItem } from "./draggable-menu-item";
 import { DraggableMenuGroup } from "./draggable-menu-group";
 import { ThemeSwitcher } from "./theme-switcher";
-import { getAssetPath } from "@/lib/config";
+import { getAssetPath, navigateToMenu } from "@/lib/config";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
@@ -122,10 +122,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // 创建菜单并导航
   const handleCreateMenu = (groupId?: string) => {
     const menuId = createMenu(groupId);
-    // 存储目标菜单 ID（GitHub Pages 兼容）
-    sessionStorage.setItem("targetMenuId", menuId);
-    // 统一跳转到 default 路由
-    router.push("/menu/default");
+    router.push(navigateToMenu(menuId));
   };
 
   // 重命名菜单（带输入框）
@@ -267,10 +264,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         <DropdownMenuItem
                           key={item.menuId}
                           onClick={() => {
-                            // 存储目标菜单 ID（GitHub Pages 兼容）
-                            sessionStorage.setItem("targetMenuId", item.menuId);
-                            // 统一跳转到 default 路由
-                            router.push("/menu/default");
+                            router.push(navigateToMenu(item.menuId));
                           }}
                           className="cursor-pointer"
                         >

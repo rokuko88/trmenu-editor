@@ -12,6 +12,7 @@ import { PluginPanel } from "@/components/menu-editor/plugins/plugin-panel";
 import { AVAILABLE_PLUGINS } from "@/components/menu-editor/plugins";
 import { exportMenuToYAML, downloadYAML } from "@/lib/yaml-exporter";
 import { importMenuFromFile, validateYAML } from "@/lib/yaml-importer";
+import { navigateToMenu } from "@/lib/config";
 
 export default function MenuEditorClient() {
   const params = useParams();
@@ -43,6 +44,7 @@ export default function MenuEditorClient() {
       setMenuId(params.id as string);
     }
   }, [params.id]);
+
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<MenuItem | null>(null);
 
@@ -60,12 +62,16 @@ export default function MenuEditorClient() {
     }
   }, [menuId, currentMenu, setSelectedMenuId, addToRecent]);
 
-  // 如果菜单不存在，重定向到首页
+  // 如果菜单不存在且不是 default 占位路由，重定向到首页
   useEffect(() => {
+    // menuId 为空或是 default 占位符时，不检查
+    if (!menuId || menuId === "default") return;
+
+    // 有 menuId，但找不到对应菜单，且已有其他菜单存在，说明菜单确实不存在
     if (!currentMenu && menus.length > 0) {
       router.push("/");
     }
-  }, [currentMenu, menus.length, router]);
+  }, [currentMenu, menus.length, router, menuId]);
 
   // 处理保存
   const handleSave = () => {
@@ -148,10 +154,7 @@ export default function MenuEditorClient() {
               type: importedMenu.type,
               items: importedMenu.items,
             });
-            // 存储目标菜单 ID（GitHub Pages 兼容）
-            sessionStorage.setItem("targetMenuId", newMenuId);
-            // 统一跳转到 default 路由
-            router.push("/menu/default");
+            router.push(navigateToMenu(newMenuId));
             alert("导入成功！已创建新菜单。");
           }
         };
