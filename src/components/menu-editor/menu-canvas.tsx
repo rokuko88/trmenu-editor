@@ -445,10 +445,18 @@ export function MenuCanvas({
         </div>
       ) : (
         <div
-          className="flex-1 flex flex-col items-center justify-center p-8 select-none"
+          className="flex-1 flex flex-col items-center justify-center p-8 select-none relative"
           onMouseDown={handleMouseDown}
+          style={{
+            ...(showGrid && {
+              backgroundImage:
+                "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
+              backgroundSize: "20px 20px",
+              backgroundPosition: "center center",
+            }),
+          }}
         >
-          <div className="w-full max-w-xl space-y-4 pointer-events-none">
+          <div className="w-full max-w-xl space-y-4 pointer-events-none relative z-10">
             {/* 菜单标题栏 */}
             <div className="flex items-center justify-between px-1">
               <div>
@@ -472,11 +480,6 @@ export function MenuCanvas({
                   display: "grid",
                   gridTemplateColumns: `repeat(${cols}, 1fr)`,
                   gridTemplateRows: `repeat(${rows}, 1fr)`,
-                  ...(showGrid && {
-                    backgroundImage:
-                      "linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)",
-                    backgroundSize: "20px 20px",
-                  }),
                 }}
               >
                 {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}

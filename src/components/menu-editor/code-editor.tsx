@@ -14,7 +14,7 @@ interface CodeEditorProps {
 export function CodeEditor({ menu, onSave }: CodeEditorProps) {
   const { theme, resolvedTheme } = useTheme();
   const [localCode, setLocalCode] = useState<string | null>(null);
-  
+
   // 确定当前是否为暗黑模式
   const isDark = theme === "dark" || resolvedTheme === "dark";
 
@@ -24,7 +24,7 @@ export function CodeEditor({ menu, onSave }: CodeEditorProps) {
     if (localCode !== null) {
       return localCode;
     }
-    
+
     // 否则从 menu 生成 YAML
     try {
       return exportMenuToYAML(menu);
