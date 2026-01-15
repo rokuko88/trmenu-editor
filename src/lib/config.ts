@@ -26,6 +26,12 @@ export function navigateToMenu(menuId: string): string {
   if (IS_PRODUCTION) {
     // 生产环境：使用 sessionStorage + default 路由
     sessionStorage.setItem("targetMenuId", menuId);
+
+    // 触发自定义事件，通知组件 menuId 变化（用于同页面内切换）
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new Event("menuChange"));
+    }
+
     return "/menu/default";
   } else {
     // 开发环境：直接使用真实路由

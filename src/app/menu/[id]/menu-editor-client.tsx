@@ -45,6 +45,24 @@ export default function MenuEditorClient() {
     }
   }, [params.id]);
 
+  // 在生产环境中，监听 storage 事件以支持同页面切换菜单
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const targetMenuId = sessionStorage.getItem("targetMenuId");
+      if (targetMenuId) {
+        sessionStorage.removeItem("targetMenuId");
+        setMenuId(targetMenuId);
+      }
+    };
+
+    // 监听自定义事件（同页面内的 sessionStorage 变化）
+    window.addEventListener("menuChange", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("menuChange", handleStorageChange);
+    };
+  }, []);
+
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [clipboard, setClipboard] = useState<MenuItem | null>(null);
 
