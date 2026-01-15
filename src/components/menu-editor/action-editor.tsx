@@ -592,19 +592,6 @@ function ActionEditDialog({
                     ))}
                   </div>
                 )}
-
-              <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded text-xs text-blue-800 dark:text-blue-300">
-                <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
-                <div className="space-y-1">
-                  <p className="font-medium">条件表达式示例：</p>
-                  <ul className="list-disc list-inside space-y-0.5 text-[11px]">
-                    <li>perm *admin - 检查权限</li>
-                    <li>level &gt; 10 - 检查等级</li>
-                    <li>money &gt; 100 - 检查金币</li>
-                    <li>js: player.getLevel() &gt; 5 - JavaScript 表达式</li>
-                  </ul>
-                </div>
-              </div>
             </div>
           </div>
         </ScrollArea>
