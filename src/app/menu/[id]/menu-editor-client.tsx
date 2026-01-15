@@ -148,7 +148,10 @@ export default function MenuEditorClient() {
               type: importedMenu.type,
               items: importedMenu.items,
             });
-            router.push(`/menu/${newMenuId}`);
+            // 存储目标菜单 ID（GitHub Pages 兼容）
+            sessionStorage.setItem("targetMenuId", newMenuId);
+            // 统一跳转到 default 路由
+            router.push("/menu/default");
             alert("导入成功！已创建新菜单。");
           }
         };

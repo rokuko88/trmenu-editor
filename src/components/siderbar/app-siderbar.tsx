@@ -122,7 +122,10 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   // 创建菜单并导航
   const handleCreateMenu = (groupId?: string) => {
     const menuId = createMenu(groupId);
-    router.push(`/menu/${menuId}`);
+    // 存储目标菜单 ID（GitHub Pages 兼容）
+    sessionStorage.setItem("targetMenuId", menuId);
+    // 统一跳转到 default 路由
+    router.push("/menu/default");
   };
 
   // 重命名菜单（带输入框）
@@ -263,7 +266,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                       {recentItems.map((item, index) => (
                         <DropdownMenuItem
                           key={item.menuId}
-                          onClick={() => router.push(`/menu/${item.menuId}`)}
+                          onClick={() => {
+                            // 存储目标菜单 ID（GitHub Pages 兼容）
+                            sessionStorage.setItem("targetMenuId", item.menuId);
+                            // 统一跳转到 default 路由
+                            router.push("/menu/default");
+                          }}
                           className="cursor-pointer"
                         >
                           <File className="h-4 w-4 mr-2 shrink-0" />

@@ -45,12 +45,20 @@ export function DraggableMenuItem({
     cursor: isDragging ? "grabbing" : undefined,
   };
 
+  // 处理菜单点击 - GitHub Pages 兼容
+  const handleMenuClick = () => {
+    // 存储目标菜单 ID
+    sessionStorage.setItem("targetMenuId", menu.id);
+    // 统一跳转到 default 路由
+    router.push("/menu/default");
+  };
+
   return (
     <div ref={setNodeRef} style={style}>
       <SidebarMenuItem>
         <div className="group/item relative">
           <SidebarMenuButton
-            onClick={() => router.push(`/menu/${menu.id}`)}
+            onClick={handleMenuClick}
             isActive={isActive}
             tooltip={menu.name}
             className="h-8"
