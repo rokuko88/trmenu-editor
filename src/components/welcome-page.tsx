@@ -17,6 +17,7 @@ import {
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { getAssetPath } from "@/lib/config";
+import { toast } from "sonner";
 
 interface WelcomePageProps {
   onCreateBlank: () => void;
@@ -77,14 +78,14 @@ export default function WelcomePage({
       icon: Folder,
       title: "打开文件夹",
       description: "浏览本地菜单文件",
-      action: () => alert("打开文件夹功能即将推出"),
+      action: () => toast.info("打开文件夹功能即将推出"),
       variant: "outline" as const,
     },
     {
       icon: Sparkles,
       title: "使用模板",
       description: "从预设模板开始",
-      action: () => alert("模板功能即将推出"),
+      action: () => toast.info("模板功能即将推出"),
       variant: "outline" as const,
     },
   ];

@@ -82,9 +82,7 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 删除菜单
-      deleteMenu: (menuId: string) => {
-        if (!confirm("确定要删除这个菜单吗？")) return;
-
+      deleteMenu: (menuId: string, skipConfirm = false) => {
         const state = get();
         set({
           menus: state.menus.filter((m) => m.id !== menuId),
@@ -153,18 +151,11 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 删除菜单组
-      deleteGroup: (groupId: string) => {
+      deleteGroup: (groupId: string, skipConfirm = false) => {
         const state = get();
         const groupMenus = state.menus.filter((m) => m.groupId === groupId);
 
         if (groupMenus.length > 0) {
-          if (
-            !confirm(
-              `此菜单组包含 ${groupMenus.length} 个菜单，删除后菜单将移至未分组。确定要删除吗？`
-            )
-          ) {
-            return;
-          }
           // 将组内菜单移至未分组
           set({
             menus: state.menus.map((m) =>
@@ -173,7 +164,6 @@ export const useMenuStore = create<MenuStore>()(
             menuGroups: state.menuGroups.filter((g) => g.id !== groupId),
           });
         } else {
-          if (!confirm("确定要删除这个菜单组吗？")) return;
           set({
             menuGroups: state.menuGroups.filter((g) => g.id !== groupId),
           });
@@ -300,8 +290,7 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 清空所有菜单
-      clearAllMenus: () => {
-        if (!confirm("确定要清空所有菜单吗？此操作不可恢复！")) return;
+      clearAllMenus: (skipConfirm = false) => {
         set({
           menus: [],
           menuGroups: [],

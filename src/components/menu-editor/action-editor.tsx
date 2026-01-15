@@ -27,7 +27,6 @@ import {
   Edit,
   ChevronDown,
   ChevronRight,
-  AlertCircle,
   Command,
   MousePointer,
   X as CloseIcon,
@@ -53,6 +52,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useConfirm } from "@/hooks/use-confirm";
+import { toast } from "sonner";
 
 interface ActionEditorProps {
   actions: MenuAction[];
@@ -62,6 +63,7 @@ interface ActionEditorProps {
 export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<MenuAction | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const handleAddAction = () => {
     setEditingAction({
@@ -95,8 +97,14 @@ export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
     setEditingAction(null);
   };
 
-  const handleDeleteAction = (actionId: string) => {
-    if (confirm("确定要删除这个动作吗？")) {
+  const handleDeleteAction = async (actionId: string) => {
+    const shouldDelete = await confirm({
+      title: "删除动作",
+      description: "确定要删除这个动作吗？",
+      variant: "destructive",
+      confirmText: "删除",
+    });
+    if (shouldDelete) {
       onUpdate(actions.filter((a) => a.id !== actionId));
     }
   };
@@ -153,6 +161,9 @@ export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
           onSave={handleSaveAction}
         />
       )}
+
+      {/* Modal Dialog */}
+      <ConfirmDialog />
     </div>
   );
 }
@@ -375,7 +386,7 @@ function ActionEditDialog({
   const handleSave = () => {
     // 验证
     if (!editedAction.value && editedAction.type !== "CLOSE") {
-      alert("请输入动作值");
+      toast.error("请输入动作值");
       return;
     }
     onSave(editedAction);

@@ -15,6 +15,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useConfirm } from "@/hooks/use-confirm";
+import { usePrompt } from "@/hooks/use-prompt";
 
 // 本地存储的资产库
 const ASSETS_STORAGE_KEY = "trmenu-item-assets";
@@ -152,6 +154,8 @@ export function ItemAssetsPlugin({
   selectedItem,
 }: PluginComponentProps) {
   const [assets, setAssets] = useState<ItemAsset[]>(getInitialAssets);
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { prompt, PromptDialog } = usePrompt();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [draggedItem, setDraggedItem] = useState<ItemAsset | null>(null);
@@ -163,19 +167,31 @@ export function ItemAssetsPlugin({
   };
 
   // 添加当前选中的物品到资产库
-  const addCurrentItem = () => {
+  const addCurrentItem = async () => {
     if (!selectedItem) {
-      alert("请先选择一个物品");
+      await confirm({
+        title: "提示",
+        description: "请先选择一个物品",
+        confirmText: "知道了",
+        cancelText: "",
+      });
       return;
     }
 
-    const name = prompt(
-      "请输入资产名称：",
-      selectedItem.displayName || "新资产"
-    );
+    const name = await prompt({
+      title: "添加资产",
+      description: "请输入资产名称",
+      defaultValue: selectedItem.displayName || "新资产",
+      placeholder: "资产名称",
+    });
     if (!name) return;
 
-    const category = prompt("请输入分类：", "自定义");
+    const category = await prompt({
+      title: "资产分类",
+      description: "请输入分类",
+      defaultValue: "自定义",
+      placeholder: "分类名称",
+    });
     if (!category) return;
 
     const newAsset: ItemAsset = {
@@ -199,8 +215,14 @@ export function ItemAssetsPlugin({
   };
 
   // 删除资产
-  const deleteAsset = (assetId: string) => {
-    if (!confirm("确定要删除这个资产吗？")) return;
+  const deleteAsset = async (assetId: string) => {
+    const shouldDelete = await confirm({
+      title: "删除资产",
+      description: "确定要删除这个资产吗？",
+      variant: "destructive",
+      confirmText: "删除",
+    });
+    if (!shouldDelete) return;
     saveAssets(assets.filter((a) => a.id !== assetId));
   };
 
@@ -358,6 +380,10 @@ export function ItemAssetsPlugin({
       <div className="p-2 border-t text-muted-foreground text-center shrink-0">
         共 {filteredAssets.length} 个资产
       </div>
+
+      {/* Modal Dialogs */}
+      <ConfirmDialog />
+      <PromptDialog />
     </div>
   );
 }

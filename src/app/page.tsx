@@ -5,6 +5,7 @@ import { SidebarInset } from "@/components/ui/sidebar";
 import WelcomePage from "@/components/welcome-page";
 import { useMenuStore } from "@/store/menu-store";
 import { navigateToMenu } from "@/lib/config";
+import { toast } from "sonner";
 
 export default function Home() {
   const router = useRouter();
@@ -19,7 +20,7 @@ export default function Home() {
   // 导入菜单
   const handleImportMenu = () => {
     // TODO: 实现文件选择和 YAML 解析
-    alert("导入功能即将推出！");
+    toast.info("导入功能即将推出！");
   };
 
   return (

@@ -31,6 +31,8 @@ import { DraggableMenuItem } from "./draggable-menu-item";
 import { useMenuStore } from "@/store/menu-store";
 import { useRouter } from "next/navigation";
 import { navigateToMenu } from "@/lib/config";
+import { useConfirm } from "@/hooks/use-confirm";
+import { usePrompt } from "@/hooks/use-prompt";
 
 interface DraggableMenuGroupProps {
   group: MenuGroup;
@@ -54,6 +56,10 @@ export function DraggableMenuGroup({
   const createMenu = useMenuStore((state) => state.createMenu);
   const deleteGroup = useMenuStore((state) => state.deleteGroup);
   const renameGroup = useMenuStore((state) => state.renameGroup);
+
+  // Hooks for modal dialogs
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { prompt, PromptDialog } = usePrompt();
   const {
     attributes,
     listeners,
@@ -81,10 +87,34 @@ export function DraggableMenuGroup({
   };
 
   // 处理重命名组
-  const handleRenameGroup = () => {
-    const newName = prompt("请输入新的菜单组名称：", group.name);
+  const handleRenameGroup = async () => {
+    const newName = await prompt({
+      title: "重命名菜单组",
+      description: "请输入新的菜单组名称",
+      defaultValue: group.name,
+      placeholder: "菜单组名称",
+    });
     if (newName && newName.trim()) {
       renameGroup(group.id, newName.trim());
+    }
+  };
+
+  // 处理删除组
+  const handleDeleteGroup = async () => {
+    const groupMenuCount = menus.length;
+    
+    const shouldDelete = await confirm({
+      title: "删除菜单组",
+      description:
+        groupMenuCount > 0
+          ? `此菜单组包含 ${groupMenuCount} 个菜单，删除后菜单将移至未分组。确定要删除吗？`
+          : "确定要删除这个菜单组吗？",
+      variant: "destructive",
+      confirmText: "删除",
+    });
+
+    if (shouldDelete) {
+      deleteGroup(group.id);
     }
   };
 
@@ -146,7 +176,7 @@ export function DraggableMenuGroup({
                     重命名
                   </DropdownMenuItem>
                   <DropdownMenuItem
-                    onClick={() => deleteGroup(group.id)}
+                    onClick={handleDeleteGroup}
                     className="text-destructive"
                   >
                     删除
@@ -169,6 +199,10 @@ export function DraggableMenuGroup({
           </CollapsibleContent>
         </SidebarMenuItem>
       </Collapsible>
+
+      {/* Modal Dialogs */}
+      <ConfirmDialog />
+      <PromptDialog />
     </div>
   );
 }

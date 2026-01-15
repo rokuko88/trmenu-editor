@@ -4,6 +4,8 @@ import { PluginComponentProps } from "@/types/plugin";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Palette, Download } from "lucide-react";
+import { useConfirm } from "@/hooks/use-confirm";
+import { toast } from "sonner";
 
 interface ColorScheme {
   id: string;
@@ -82,14 +84,15 @@ const COLOR_SCHEMES: ColorScheme[] = [
 ];
 
 export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
-  const applyScheme = (scheme: ColorScheme) => {
-    if (
-      !confirm(
-        `确定要应用"${scheme.name}"配色方案吗？\n这将在顶部行应用该配色。`
-      )
-    ) {
-      return;
-    }
+  const { confirm, ConfirmDialog } = useConfirm();
+
+  const applyScheme = async (scheme: ColorScheme) => {
+    const shouldApply = await confirm({
+      title: "应用配色方案",
+      description: `确定要应用"${scheme.name}"配色方案吗？\n这将在顶部行应用该配色。`,
+    });
+
+    if (!shouldApply) return;
 
     // 在顶部行应用配色
     for (let i = 0; i < 9; i++) {
@@ -104,17 +107,21 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
       });
     }
 
-    alert(`已应用"${scheme.name}"配色方案！`);
+    await confirm({
+      title: "成功",
+      description: `已应用"${scheme.name}"配色方案！`,
+      confirmText: "知道了",
+      cancelText: "",
+    });
   };
 
-  const applyFullScheme = (scheme: ColorScheme) => {
-    if (
-      !confirm(
-        `确定要完整应用"${scheme.name}"配色吗？\n这将用该配色填充所有边框。`
-      )
-    ) {
-      return;
-    }
+  const applyFullScheme = async (scheme: ColorScheme) => {
+    const shouldApply = await confirm({
+      title: "完整应用配色",
+      description: `确定要完整应用"${scheme.name}"配色吗？\n这将用该配色填充所有边框。`,
+    });
+
+    if (!shouldApply) return;
 
     // 顶部边框
     for (let i = 0; i < 9; i++) {
@@ -161,7 +168,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
       });
     }
 
-    alert(`已完整应用"${scheme.name}"配色方案！`);
+    toast.success(`已完整应用"${scheme.name}"配色方案！`);
   };
 
   const groupedSchemes = {
@@ -171,64 +178,69 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
   };
 
   return (
-    <ScrollArea className="h-full">
-      <div className="p-3 space-y-3">
-        <div className="space-y-1">
-          <div className="flex items-center gap-1.5">
-            <Palette className="h-3.5 w-3.5 text-pink-500" />
-            <h3 className="font-semibold text-xs">配色方案</h3>
+    <>
+      <ScrollArea className="h-full">
+        <div className="p-3 space-y-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-1.5">
+              <Palette className="h-3.5 w-3.5 text-pink-500" />
+              <h3 className="font-semibold text-xs">配色方案</h3>
+            </div>
+            <p className="text-muted-foreground leading-tight">
+              快速应用预设的配色方案美化菜单
+            </p>
           </div>
-          <p className="text-muted-foreground leading-tight">
-            快速应用预设的配色方案美化菜单
-          </p>
-        </div>
 
-        {/* 明亮主题 */}
-        <div className="space-y-1.5">
-          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
-            明亮主题
-          </h4>
-          {groupedSchemes.light.map((scheme) => (
-            <SchemeCard
-              key={scheme.id}
-              scheme={scheme}
-              onApply={applyScheme}
-              onApplyFull={applyFullScheme}
-            />
-          ))}
-        </div>
+          {/* 明亮主题 */}
+          <div className="space-y-1.5">
+            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+              明亮主题
+            </h4>
+            {groupedSchemes.light.map((scheme) => (
+              <SchemeCard
+                key={scheme.id}
+                scheme={scheme}
+                onApply={applyScheme}
+                onApplyFull={applyFullScheme}
+              />
+            ))}
+          </div>
 
-        {/* 深色主题 */}
-        <div className="space-y-1.5">
-          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
-            深色主题
-          </h4>
-          {groupedSchemes.dark.map((scheme) => (
-            <SchemeCard
-              key={scheme.id}
-              scheme={scheme}
-              onApply={applyScheme}
-              onApplyFull={applyFullScheme}
-            />
-          ))}
-        </div>
+          {/* 深色主题 */}
+          <div className="space-y-1.5">
+            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+              深色主题
+            </h4>
+            {groupedSchemes.dark.map((scheme) => (
+              <SchemeCard
+                key={scheme.id}
+                scheme={scheme}
+                onApply={applyScheme}
+                onApplyFull={applyFullScheme}
+              />
+            ))}
+          </div>
 
-        {/* 彩色主题 */}
-        <div className="space-y-1.5">
-          <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
-            彩色主题
-          </h4>
-          {groupedSchemes.colorful.map((scheme) => (
-            <SchemeCard
-              key={scheme.id}
-              scheme={scheme}
-              onApply={applyScheme}
-              onApplyFull={applyFullScheme}
-            />
-          ))}
+          {/* 彩色主题 */}
+          <div className="space-y-1.5">
+            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+              彩色主题
+            </h4>
+            {groupedSchemes.colorful.map((scheme) => (
+              <SchemeCard
+                key={scheme.id}
+                scheme={scheme}
+                onApply={applyScheme}
+                onApplyFull={applyFullScheme}
+              />
+            ))}
+          </div>
         </div>
-      </div>
-    </ScrollArea>
+      </ScrollArea>
+
+      {/* Modal Dialog */}
+      <ConfirmDialog />
+    </>
   );
 }
 

@@ -13,6 +13,9 @@ import { AVAILABLE_PLUGINS } from "@/components/menu-editor/plugins";
 import { exportMenuToYAML, downloadYAML } from "@/lib/yaml-exporter";
 import { importMenuFromFile, validateYAML } from "@/lib/yaml-importer";
 import { navigateToMenu } from "@/lib/config";
+import { useConfirm } from "@/hooks/use-confirm";
+import { usePrompt } from "@/hooks/use-prompt";
+import { toast } from "sonner";
 
 export default function MenuEditorClient() {
   const params = useParams();
@@ -25,6 +28,10 @@ export default function MenuEditorClient() {
   const updateMenuItem = useMenuStore((state) => state.updateMenuItem);
   const deleteMenuItem = useMenuStore((state) => state.deleteMenuItem);
   const moveMenuItem = useMenuStore((state) => state.moveMenuItem);
+
+  // Hooks for modal dialogs
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { prompt, PromptDialog } = usePrompt();
 
   // 获取菜单 ID：优先使用 sessionStorage 中的目标 ID（用于 GitHub Pages 路由恢复）
   const [menuId, setMenuId] = useState<string>("");
@@ -94,7 +101,7 @@ export default function MenuEditorClient() {
   // 处理保存
   const handleSave = () => {
     // 实际上 zustand 已经自动持久化了
-    alert("保存成功！数据已自动同步到本地存储。");
+    toast.success("保存成功！数据已自动同步到本地存储。");
   };
 
   // 处理导出
@@ -105,10 +112,12 @@ export default function MenuEditorClient() {
       const yaml = exportMenuToYAML(currentMenu);
       const filename = currentMenu.name.replace(/[^\w\s\u4e00-\u9fa5]/g, "_");
       downloadYAML(filename, yaml);
-      alert("导出成功！");
+      toast.success("导出成功！");
     } catch (error) {
       console.error("导出失败:", error);
-      alert(`导出失败: ${error instanceof Error ? error.message : "未知错误"}`);
+      toast.error(
+        `导出失败: ${error instanceof Error ? error.message : "未知错误"}`
+      );
     }
   };
 
@@ -131,16 +140,17 @@ export default function MenuEditorClient() {
           // 验证 YAML
           const validation = validateYAML(content);
           if (!validation.valid) {
-            alert(`YAML 格式错误: ${validation.error}`);
+            toast.error(`YAML 格式错误: ${validation.error}`);
             return;
           }
 
           if (validation.warnings && validation.warnings.length > 0) {
-            const proceed = confirm(
-              `检测到以下警告:\n${validation.warnings.join(
+            const proceed = await confirm({
+              title: "检测到警告",
+              description: `检测到以下警告:\n${validation.warnings.join(
                 "\n"
-              )}\n\n是否继续导入？`
-            );
+              )}\n\n是否继续导入？`,
+            });
             if (!proceed) return;
           }
 
@@ -148,9 +158,10 @@ export default function MenuEditorClient() {
           const importedMenu = await importMenuFromFile(file);
 
           // 询问是否覆盖当前菜单或创建新菜单
-          const shouldReplace = confirm(
-            `是否用导入的配置替换当前菜单 "${currentMenu?.name}"?\n\n点击"确定"替换当前菜单\n点击"取消"创建新菜单`
-          );
+          const shouldReplace = await confirm({
+            title: "导入方式",
+            description: `是否用导入的配置替换当前菜单 "${currentMenu?.name}"?\n\n点击"确认"替换当前菜单\n点击"取消"创建新菜单`,
+          });
 
           if (shouldReplace && currentMenu) {
             // 替换当前菜单
@@ -160,7 +171,7 @@ export default function MenuEditorClient() {
               type: importedMenu.type,
               items: importedMenu.items,
             });
-            alert("导入成功！已替换当前菜单。");
+            toast.success("导入成功！已替换当前菜单。");
           } else {
             // 创建新菜单
             const createMenu = useMenuStore.getState().createMenu;
@@ -173,14 +184,14 @@ export default function MenuEditorClient() {
               items: importedMenu.items,
             });
             router.push(navigateToMenu(newMenuId));
-            alert("导入成功！已创建新菜单。");
+            toast.success("导入成功！已创建新菜单。");
           }
         };
 
         reader.readAsText(file, "utf-8");
       } catch (error) {
         console.error("导入失败:", error);
-        alert(
+        toast.error(
           `导入失败: ${error instanceof Error ? error.message : "未知错误"}`
         );
       }
@@ -191,7 +202,7 @@ export default function MenuEditorClient() {
 
   // 处理预览
   const handlePreview = () => {
-    alert("预览功能即将推出！将会在新窗口中显示菜单效果。");
+    toast.info("预览功能即将推出！将会在新窗口中显示菜单效果。");
   };
 
   // 处理槽位点击（添加新物品）
@@ -286,13 +297,16 @@ export default function MenuEditorClient() {
   };
 
   // 处理粘贴物品
-  const handlePasteItem = (slot: number) => {
+  const handlePasteItem = async (slot: number) => {
     if (!clipboard || !currentMenu) return;
 
     // 检查目标槽位是否已有物品
     const existingItem = currentMenu.items.find((i) => i.slot === slot);
     if (existingItem) {
-      const shouldReplace = confirm("目标槽位已有物品，是否替换？");
+      const shouldReplace = await confirm({
+        description: "目标槽位已有物品，是否替换？",
+        variant: "destructive",
+      });
       if (!shouldReplace) return;
       deleteMenuItem(menuId, existingItem.id);
     }
@@ -308,26 +322,38 @@ export default function MenuEditorClient() {
   };
 
   // 处理克隆物品
-  const handleCloneItem = (item: MenuItem, sourceSlot: number) => {
+  const handleCloneItem = async (item: MenuItem, sourceSlot: number) => {
     if (!currentMenu) return;
 
-    const targetSlotStr = prompt(
-      "请输入目标槽位号 (0-" + (currentMenu.size - 1) + "):",
-      String(sourceSlot + 1)
-    );
+    const targetSlotStr = await prompt({
+      title: "克隆物品",
+      description: "请输入目标槽位号 (0-" + (currentMenu.size - 1) + ")",
+      defaultValue: String(sourceSlot + 1),
+      placeholder: "输入槽位号",
+    });
 
     if (!targetSlotStr) return;
 
     const targetSlot = parseInt(targetSlotStr);
     if (isNaN(targetSlot) || targetSlot < 0 || targetSlot >= currentMenu.size) {
-      alert("无效的槽位号");
+      await confirm({
+        title: "错误",
+        description: "无效的槽位号",
+        confirmText: "知道了",
+        cancelText: "",
+      });
       return;
     }
 
     // 检查目标槽位是否已有物品
     const existingItem = currentMenu.items.find((i) => i.slot === targetSlot);
     if (existingItem) {
-      alert("目标槽位已有物品");
+      await confirm({
+        title: "提示",
+        description: "目标槽位已有物品",
+        confirmText: "知道了",
+        cancelText: "",
+      });
       return;
     }
 
@@ -342,12 +368,15 @@ export default function MenuEditorClient() {
   };
 
   // 批量删除
-  const handleBatchDelete = (itemIds: string[]) => {
+  const handleBatchDelete = async (itemIds: string[]) => {
     if (!currentMenu) return;
 
-    const shouldDelete = confirm(
-      `确定要删除选中的 ${itemIds.length} 个物品吗？`
-    );
+    const shouldDelete = await confirm({
+      title: "批量删除",
+      description: `确定要删除选中的 ${itemIds.length} 个物品吗？`,
+      variant: "destructive",
+      confirmText: "删除",
+    });
     if (!shouldDelete) return;
 
     itemIds.forEach((itemId) => {
@@ -398,7 +427,7 @@ export default function MenuEditorClient() {
     });
 
     if (hasConflict) {
-      alert("目标位置有物品，无法移动");
+      toast.error("目标位置有物品，无法移动");
       return;
     }
 
@@ -487,6 +516,10 @@ export default function MenuEditorClient() {
           </div>
         </div>
       </div>
+
+      {/* Modal Dialogs */}
+      <ConfirmDialog />
+      <PromptDialog />
     </SidebarInset>
   );
 }

@@ -16,6 +16,8 @@ import {
 import type { MenuConfig } from "@/types";
 import { navigateToMenu } from "@/lib/config";
 import { useMenuStore } from "@/store/menu-store";
+import { useConfirm } from "@/hooks/use-confirm";
+import { usePrompt } from "@/hooks/use-prompt";
 
 interface DraggableMenuItemProps {
   menu: MenuConfig;
@@ -28,6 +30,10 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
   const selectedMenuId = useMenuStore((state) => state.selectedMenuId);
   const deleteMenu = useMenuStore((state) => state.deleteMenu);
   const renameMenu = useMenuStore((state) => state.renameMenu);
+
+  // Hooks for modal dialogs
+  const { confirm, ConfirmDialog } = useConfirm();
+  const { prompt, PromptDialog } = usePrompt();
 
   const isActive = selectedMenuId === menu.id;
   const {
@@ -52,10 +58,28 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
   };
 
   // 处理重命名
-  const handleRename = () => {
-    const newName = prompt("请输入新的菜单名称：", menu.name);
+  const handleRename = async () => {
+    const newName = await prompt({
+      title: "重命名菜单",
+      description: "请输入新的菜单名称",
+      defaultValue: menu.name,
+      placeholder: "菜单名称",
+    });
     if (newName && newName.trim()) {
       renameMenu(menu.id, newName.trim());
+    }
+  };
+
+  // 处理删除
+  const handleDelete = async () => {
+    const shouldDelete = await confirm({
+      title: "删除菜单",
+      description: "确定要删除这个菜单吗？",
+      variant: "destructive",
+      confirmText: "删除",
+    });
+    if (shouldDelete) {
+      deleteMenu(menu.id);
     }
   };
 
@@ -84,7 +108,7 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
               className="h-6 w-6 shrink-0 hover:bg-destructive/10 hover:text-destructive"
               onClick={(e) => {
                 e.stopPropagation();
-                deleteMenu(menu.id);
+                handleDelete();
               }}
               title="删除菜单"
             >
@@ -109,7 +133,7 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
                   重命名
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                  onClick={() => deleteMenu(menu.id)}
+                  onClick={handleDelete}
                   className="text-destructive"
                 >
                   删除
@@ -119,6 +143,10 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
           </div>
         </div>
       </SidebarMenuItem>
+
+      {/* Modal Dialogs */}
+      <ConfirmDialog />
+      <PromptDialog />
     </div>
   );
 }
