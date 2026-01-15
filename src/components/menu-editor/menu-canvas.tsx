@@ -397,7 +397,7 @@ export function MenuCanvas({
       className="flex-1 flex flex-col items-center justify-center p-8 bg-accent relative select-none"
       onMouseDown={handleMouseDown}
     >
-      <div className="w-full max-w-3xl space-y-4 pointer-events-none">
+      <div className="w-full max-w-xl space-y-4 pointer-events-none">
         {/* 菜单标题栏 */}
         <div className="flex items-center justify-between px-1">
           <div>
@@ -411,7 +411,7 @@ export function MenuCanvas({
         {/* Inventory 容器 */}
         <div
           ref={containerRef}
-          className="relative bg-card rounded-lg p-3 border pointer-events-auto"
+          className="relative bg-card rounded-sm p-2 border pointer-events-auto"
           style={{
             display: "grid",
             gridTemplateColumns: `repeat(${cols}, 1fr)`,

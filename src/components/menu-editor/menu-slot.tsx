@@ -42,7 +42,7 @@ export function MenuSlot({
         "relative aspect-square transition-colors",
         "hover:border-primary/40 cursor-pointer group",
         // 基础边框和圆角
-        "border border-border/40 rounded-sm",
+        "border border-border/40",
         // 选中态 - 移除圆角，避免边框断开
         isInSelection && "rounded-none",
         // 单独选中的物品
