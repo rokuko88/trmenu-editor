@@ -14,19 +14,19 @@ cd trmenu-editor
 ### 2. 安装依赖
 
 ```bash
-npm install
+pnpm install
 ```
 
 ### 3. 初始化 Husky（Git Hooks）
 
 ```bash
-npm run prepare
+pnpm run prepare
 ```
 
 ### 4. 启动开发服务器
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 访问 [http://localhost:3000](http://localhost:3000) 查看应用。
@@ -95,41 +95,41 @@ feat(color-picker): 添加 Minecraft 颜色选择器组件
 
 检查提交消息是否符合规范。
 
-## 可用的 NPM Scripts
+## 可用的 Scripts
 
 ### 开发
 
 ```bash
 # 启动开发服务器
-npm run dev
+pnpm run dev
 
 # 类型检查
-npm run type-check
+pnpm run type-check
 
 # ESLint 检查
-npm run lint
+pnpm run lint
 
 # ESLint 自动修复
-npm run lint:fix
+pnpm run lint:fix
 
 # Prettier 格式化
-npm run format
+pnpm run format
 
 # 检查代码格式
-npm run format:check
+pnpm run format:check
 
 # 运行所有检查（类型检查 + ESLint + Prettier）
-npm run check-all
+pnpm run check-all
 ```
 
 ### 构建
 
 ```bash
 # 生产环境构建
-npm run build
+pnpm run build
 
 # 启动生产服务器
-npm run start
+pnpm run start
 ```
 
 ## 推荐的 VS Code 扩展
@@ -182,8 +182,8 @@ trmenu-editor/
 
 A: 可能的原因：
 
-1. 代码不符合 ESLint 规则 → 运行 `npm run lint:fix`
-2. 代码格式不正确 → 运行 `npm run format`
+1. 代码不符合 ESLint 规则 → 运行 `pnpm run lint:fix`
+2. 代码格式不正确 → 运行 `pnpm run format`
 3. 提交消息不符合规范 → 检查提交消息格式
 
 ### Q: 如何跳过 Git Hooks？
@@ -196,7 +196,7 @@ git commit --no-verify
 
 ### Q: 类型检查失败怎么办？
 
-A: 运行 `npm run type-check` 查看详细错误信息，修复后重新提交。
+A: 运行 `pnpm run type-check` 查看详细错误信息，修复后重新提交。
 
 ## 获取帮助
 

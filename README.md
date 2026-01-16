@@ -36,43 +36,43 @@ TrMenu Editor 是一个专为 Minecraft [TrMenu](https://github.com/TrMenu/TrMen
 ### 环境要求
 
 - Node.js >= 20.x
-- npm / pnpm / yarn
+- pnpm >= 9.x
 
 ### 安装和运行
 
 ```bash
 # 安装依赖
-npm install
+pnpm install
 
 # 初始化 Git Hooks（首次安装后执行）
-npm run prepare
+pnpm run prepare
 
 # 开发模式
-npm run dev
+pnpm run dev
 
 # 构建生产版本
-npm run build
+pnpm run build
 
 # 预览生产构建
-npm run start
+pnpm run start
 ```
 
 ### 开发命令
 
 ```bash
 # 代码检查
-npm run lint          # ESLint 检查
-npm run lint:fix      # 自动修复 ESLint 问题
+pnpm run lint          # ESLint 检查
+pnpm run lint:fix      # 自动修复 ESLint 问题
 
 # 代码格式化
-npm run format        # Prettier 格式化
-npm run format:check  # 检查代码格式
+pnpm run format        # Prettier 格式化
+pnpm run format:check  # 检查代码格式
 
 # 类型检查
-npm run type-check    # TypeScript 类型检查
+pnpm run type-check    # TypeScript 类型检查
 
 # 全面检查
-npm run check-all     # 运行所有检查
+pnpm run check-all     # 运行所有检查
 ```
 
 ### 提交规范
