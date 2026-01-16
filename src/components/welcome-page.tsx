@@ -365,7 +365,9 @@ export default function WelcomePage({
             </h3>
             <div className="space-y-1.5">
               <a
-                href="#"
+                href="https://hhhhhy.gitbook.io/trmenu-v3"
+                target="_blank"
+                rel="noreferrer"
                 className="hover:bg-accent group flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors"
               >
                 <ExternalLink className="text-muted-foreground h-3 w-3" />
