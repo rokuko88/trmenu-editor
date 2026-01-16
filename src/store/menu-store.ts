@@ -14,12 +14,16 @@ interface MenuStore {
   menuGroups: MenuGroup[];
   selectedMenuId: string | null;
   recentItems: RecentItem[];
+  menuClipboard: MenuConfig | null;
 
   // 菜单操作
   createMenu: (groupId?: string) => string;
   deleteMenu: (menuId: string) => void;
   renameMenu: (menuId: string, newName: string) => void;
   updateMenu: (menuId: string, updates: Partial<MenuConfig>) => void;
+  cloneMenu: (menuId: string, targetGroupId?: string) => string;
+  copyMenu: (menuId: string) => void;
+  pasteMenu: (targetGroupId?: string) => string | null;
 
   // 菜单项操作
   addMenuItem: (menuId: string, item: MenuItem) => void;
@@ -60,6 +64,7 @@ export const useMenuStore = create<MenuStore>()(
       menuGroups: [],
       selectedMenuId: null,
       recentItems: [],
+      menuClipboard: null,
 
       // 创建空白菜单
       createMenu: (groupId?: string) => {
@@ -134,6 +139,72 @@ export const useMenuStore = create<MenuStore>()(
               : m
           ),
         });
+      },
+
+      // 克隆菜单
+      cloneMenu: (menuId: string, targetGroupId?: string) => {
+        const state = get();
+        const sourceMenu = state.menus.find((m) => m.id === menuId);
+        if (!sourceMenu) return "";
+
+        const newMenuId = `menu-${Date.now()}`;
+        const clonedMenu: MenuConfig = {
+          ...sourceMenu,
+          id: newMenuId,
+          name: `${sourceMenu.name} (副本)`,
+          groupId: targetGroupId ?? sourceMenu.groupId,
+          items: sourceMenu.items.map((item) => ({
+            ...item,
+            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          })),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          order: state.menus.length,
+        };
+
+        set({
+          menus: [...state.menus, clonedMenu],
+        });
+
+        return newMenuId;
+      },
+
+      // 复制菜单到剪贴板
+      copyMenu: (menuId: string) => {
+        const state = get();
+        const menu = state.menus.find((m) => m.id === menuId);
+        if (!menu) return;
+
+        set({
+          menuClipboard: menu,
+        });
+      },
+
+      // 粘贴菜单
+      pasteMenu: (targetGroupId?: string) => {
+        const state = get();
+        if (!state.menuClipboard) return null;
+
+        const newMenuId = `menu-${Date.now()}`;
+        const pastedMenu: MenuConfig = {
+          ...state.menuClipboard,
+          id: newMenuId,
+          name: `${state.menuClipboard.name} (复制)`,
+          groupId: targetGroupId ?? state.menuClipboard.groupId,
+          items: state.menuClipboard.items.map((item) => ({
+            ...item,
+            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          })),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          order: state.menus.length,
+        };
+
+        set({
+          menus: [...state.menus, pastedMenu],
+        });
+
+        return newMenuId;
       },
 
       // 创建菜单组

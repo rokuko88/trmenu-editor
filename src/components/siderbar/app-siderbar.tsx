@@ -47,6 +47,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Plus, Clipboard, FolderPlus } from "lucide-react";
+import { toast } from "sonner";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const router = useRouter();
@@ -58,8 +67,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const menuGroups = useMenuStore((state) => state.menuGroups);
   const setSelectedMenuId = useMenuStore((state) => state.setSelectedMenuId);
   const createMenu = useMenuStore((state) => state.createMenu);
+  const createGroup = useMenuStore((state) => state.createGroup);
   const handleMenuDragEnd = useMenuStore((state) => state.handleMenuDragEnd);
   const clearAllMenus = useMenuStore((state) => state.clearAllMenus);
+  const pasteMenu = useMenuStore((state) => state.pasteMenu);
+  const menuClipboard = useMenuStore((state) => state.menuClipboard);
 
   const [openGroups, setOpenGroups] = React.useState<string[]>([]);
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -135,6 +147,25 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     setOpen(!open);
   };
 
+  // 处理粘贴菜单
+  const handlePasteMenu = () => {
+    if (!menuClipboard) {
+      toast.error("剪贴板为空");
+      return;
+    }
+    const newMenuId = pasteMenu();
+    if (newMenuId) {
+      toast.success("粘贴成功");
+      router.push(navigateToMenu(newMenuId));
+    }
+  };
+
+  // 处理创建菜单组
+  const handleCreateGroup = () => {
+    createGroup();
+    toast.success("已创建新菜单组");
+  };
+
   return (
     <>
       <Sidebar collapsible="icon" {...props}>
@@ -172,59 +203,83 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           <WorkspaceMenu />
 
           {/* 菜单列表 */}
-          <SidebarGroup className="group-data-[collapsible=icon]:hidden py-0">
-            <MenuListHeader
-              searchQuery={searchQuery}
-              onSearchChange={setSearchQuery}
-              onCreateMenu={handleCreateMenu}
-              onClearAll={() => setShowClearDialog(true)}
-            />
+          <ContextMenu modal={false}>
+            <ContextMenuTrigger asChild>
+              <SidebarGroup className="group-data-[collapsible=icon]:hidden py-0 flex-1">
+                <MenuListHeader
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  onCreateMenu={handleCreateMenu}
+                  onClearAll={() => setShowClearDialog(true)}
+                />
 
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleMenuDragEnd}
-            >
-              <SidebarMenu>
-                {menus.length === 0 && menuGroups.length === 0 ? (
-                  <EmptyMenuState />
-                ) : (
-                  <>
-                    {/* 渲染菜单组 */}
-                    <SortableContext
-                      items={sortedGroups.map((g) => g.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {sortedGroups.map((group) => {
-                        const groupMenuIds = getGroupMenuIds(group.id);
-                        const isOpen = openGroups.includes(group.id);
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragEnd={handleMenuDragEnd}
+                >
+                  <SidebarMenu>
+                    {menus.length === 0 && menuGroups.length === 0 ? (
+                      <EmptyMenuState />
+                    ) : (
+                      <>
+                        {/* 渲染菜单组 */}
+                        <SortableContext
+                          items={sortedGroups.map((g) => g.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {sortedGroups.map((group) => {
+                            const groupMenuIds = getGroupMenuIds(group.id);
+                            const isOpen = openGroups.includes(group.id);
 
-                        return (
-                          <DraggableMenuGroup
-                            key={group.id}
-                            group={group}
-                            groupMenus={groupMenuIds}
-                            isOpen={isOpen}
-                            onToggle={() => toggleGroup(group.id)}
-                          />
-                        );
-                      })}
-                    </SortableContext>
+                            return (
+                              <DraggableMenuGroup
+                                key={group.id}
+                                group={group}
+                                groupMenus={groupMenuIds}
+                                isOpen={isOpen}
+                                onToggle={() => toggleGroup(group.id)}
+                              />
+                            );
+                          })}
+                        </SortableContext>
 
-                    {/* 渲染未分组的菜单 */}
-                    <SortableContext
-                      items={ungroupedMenus.map((m) => m.id)}
-                      strategy={verticalListSortingStrategy}
-                    >
-                      {ungroupedMenus.map((menu) => (
-                        <DraggableMenuItem key={menu.id} menu={menu} />
-                      ))}
-                    </SortableContext>
-                  </>
-                )}
-              </SidebarMenu>
-            </DndContext>
-          </SidebarGroup>
+                        {/* 渲染未分组的菜单 */}
+                        <SortableContext
+                          items={ungroupedMenus.map((m) => m.id)}
+                          strategy={verticalListSortingStrategy}
+                        >
+                          {ungroupedMenus.map((menu) => (
+                            <DraggableMenuItem key={menu.id} menu={menu} />
+                          ))}
+                        </SortableContext>
+                      </>
+                    )}
+                  </SidebarMenu>
+                </DndContext>
+              </SidebarGroup>
+            </ContextMenuTrigger>
+
+            {/* 空白区域右键菜单 */}
+            <ContextMenuContent className="w-48">
+              <ContextMenuItem onClick={handleCreateMenu}>
+                <Plus className="mr-2 h-4 w-4" />
+                新建菜单
+              </ContextMenuItem>
+              <ContextMenuItem onClick={handleCreateGroup}>
+                <FolderPlus className="mr-2 h-4 w-4" />
+                新建菜单组
+              </ContextMenuItem>
+              <ContextMenuSeparator />
+              <ContextMenuItem
+                onClick={handlePasteMenu}
+                disabled={!menuClipboard}
+              >
+                <Clipboard className="mr-2 h-4 w-4" />
+                粘贴菜单
+              </ContextMenuItem>
+            </ContextMenuContent>
+          </ContextMenu>
         </SidebarContent>
 
         <SidebarFooter isOpen={open} onToggle={toggleSidebar} />
