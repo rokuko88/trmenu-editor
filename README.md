@@ -1,6 +1,20 @@
 # TrMenu Editor
 
 <div align="center">
+
+![Minecraft](https://img.shields.io/badge/Minecraft-Bukkit-green?style=flat-square&logo=minecraft)
+![TrMenu](https://img.shields.io/badge/TrMenu-Config_Editor-red?style=flat-square)
+![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?style=flat-square&logo=typescript&logoColor=white)
+![React](https://img.shields.io/badge/React-19.2-61DAFB?style=flat-square&logo=react&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4.x-38B2AC?style=flat-square&logo=tailwind-css&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-5.x-brown?style=flat-square)
+![dnd-kit](https://img.shields.io/badge/dnd--kit-6.x-blue?style=flat-square)
+![License](https://img.shields.io/badge/License-GPLv3-red?style=flat-square)
+
+</div>
+
+<div align="center">
   <img src="public/image.png" alt="TrMenu Editor" width="120" />
   <p>TrMenu 配置文件可视化编辑器 <a href="https://rokuko88.github.io/trmenu-editor/">在线体验</a></p>
 </div>
