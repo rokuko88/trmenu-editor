@@ -3,6 +3,7 @@
 import { useParams, useRouter } from "next/navigation";
 import { SidebarInset } from "@/components/ui/sidebar";
 import { useMenuStore } from "@/store/menu-store";
+import { useEditorStore } from "@/store/editor-store";
 import { useEffect, useState } from "react";
 import type { MenuItem, MenuConfig } from "@/types";
 import { EditorToolbar } from "@/components/menu-editor/editor-toolbar";
@@ -207,12 +208,25 @@ export default function MenuEditorClient() {
     toast.info("预览功能即将推出！将会在新窗口中显示菜单效果。");
   };
 
+  // 获取当前页码
+  const currentPage = useEditorStore((state) => state.currentPage);
+  const setCurrentPage = useEditorStore((state) => state.setCurrentPage);
+
+  // 切换菜单时重置页码
+  useEffect(() => {
+    setCurrentPage(0);
+  }, [menuId, setCurrentPage]);
+
   // 处理槽位点击（添加新物品）
   const handleSlotClick = (slot: number) => {
     if (!currentMenu) return;
 
-    // 检查槽位是否已有物品
-    const existingItem = currentMenu.items.find((item) => item.slot === slot);
+    // 检查槽位是否已有物品（同一页）
+    const existingItem = currentMenu.items.find(
+      (item) =>
+        item.slot === slot &&
+        (item.page === currentPage || (!item.page && currentPage === 0))
+    );
     if (existingItem) {
       setSelectedItemId(existingItem.id);
       return;
@@ -222,6 +236,7 @@ export default function MenuEditorClient() {
     const newItem: MenuItem = {
       id: `item-${Date.now()}`,
       slot,
+      page: currentPage, // 设置当前页码
       material: "STONE",
       displayName: "新物品",
       amount: 1,

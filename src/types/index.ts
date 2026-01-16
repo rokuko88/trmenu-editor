@@ -20,6 +20,7 @@ export interface ActionCondition {
 export interface MenuItem {
   id: string;
   slot: number;
+  page?: number; // 所属页码，从 0 开始，默认为 0（第一页）
   material: string;
   displayName?: string;
   lore?: string[];
@@ -47,6 +48,7 @@ export interface MenuConfig {
   size: MenuSize;
   type: MenuType;
   items: MenuItem[];
+  pages?: number; // 总页数，默认为 1（单页）
   createdAt: string;
   updatedAt: string;
   groupId?: string; // 所属菜单组ID（可选）

@@ -36,18 +36,44 @@ export function exportMenuToYAML(menu: MenuConfig): string {
     lines.push("");
   }
 
-  // Shape (根据 size 生成)
-  lines.push(`Shape:`);
+  // Layout (根据 size 生成，使用 TrMenu 标准)
+  const pages = menu.pages || 1;
   const rows = menu.size / 9;
-  for (let i = 0; i < rows; i++) {
-    const row = Array.from({ length: 9 }, (_, j) => {
-      const slot = i * 9 + j;
-      const item = menu.items.find((item) => item.slot === slot);
-      return item ? getItemSymbol(item, menu.items) : " ";
-    }).join("");
-    lines.push(`  - '${row}'`);
+
+  if (pages === 1) {
+    // 单页布局
+    lines.push(`Layout:`);
+    for (let i = 0; i < rows; i++) {
+      const row = Array.from({ length: 9 }, (_, j) => {
+        const slot = i * 9 + j;
+        const item = menu.items.find(
+          (item) => item.slot === slot && (item.page === 0 || !item.page)
+        );
+        return item ? getItemSymbol(item, menu.items) : " ";
+      }).join("");
+      lines.push(`  - '${row}'`);
+    }
+    lines.push("");
+  } else {
+    // 多页布局
+    lines.push(`Layout:`);
+    for (let page = 0; page < pages; page++) {
+      lines.push(`  -`);
+      for (let i = 0; i < rows; i++) {
+        const row = Array.from({ length: 9 }, (_, j) => {
+          const slot = i * 9 + j;
+          const item = menu.items.find(
+            (item) =>
+              item.slot === slot &&
+              (item.page === page || (!item.page && page === 0))
+          );
+          return item ? getItemSymbol(item, menu.items) : " ";
+        }).join("");
+        lines.push(`    - '${row}'`);
+      }
+    }
+    lines.push("");
   }
-  lines.push("");
 
   // Items
   lines.push(`Items:`);

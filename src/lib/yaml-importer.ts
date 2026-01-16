@@ -37,14 +37,32 @@ export function importMenuFromYAML(
     }
 
     const type = (data.Type || data.type || "CHEST").toUpperCase() as MenuType;
-    const shape = data.Shape || data.shape || [];
+    // 支持 Layout 和 Shape（向后兼容）
+    const layout = data.Layout || data.layout || data.Shape || data.shape || [];
 
-    // 计算菜单大小
-    const rows = shape.length;
+    // 判断是单页还是多页布局
+    let pages = 1;
+    let layoutPages: string[][] = [];
+
+    if (layout.length > 0 && Array.isArray(layout[0])) {
+      // 多页布局格式
+      pages = layout.length;
+      layoutPages = layout as string[][];
+    } else {
+      // 单页布局格式
+      pages = 1;
+      layoutPages = [layout as string[]];
+    }
+
+    // 计算菜单大小（使用第一页的行数）
+    const rows = layoutPages[0]?.length || 0;
     const size = (rows * 9) as MenuSize;
 
-    // 解析物品
-    const items = parseItems(data.Items || data.items || {}, shape);
+    // 解析物品（支持多页）
+    const items = parseItemsMultiPage(
+      data.Items || data.items || {},
+      layoutPages
+    );
 
     const menu: MenuConfig = {
       id: `menu-${Date.now()}`,
@@ -56,6 +74,7 @@ export function importMenuFromYAML(
       size,
       type,
       items,
+      pages,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       order: 0,
@@ -90,25 +109,25 @@ export function validateYAML(yamlContent: string): {
       warnings.push("缺少 Title 字段");
     }
 
-    if (!data.Shape && !data.shape) {
-      warnings.push("缺少 Shape 字段");
+    if (!data.Layout && !data.layout && !data.Shape && !data.shape) {
+      warnings.push("缺少 Layout 字段");
     }
 
     if (!data.Items && !data.items) {
       warnings.push("缺少 Items 字段");
     }
 
-    // 检查 Shape 格式
-    const shape = data.Shape || data.shape;
-    if (shape && Array.isArray(shape)) {
-      if (shape.length === 0) {
-        warnings.push("Shape 不能为空");
+    // 检查 Layout/Shape 格式（支持两种格式）
+    const layout = data.Layout || data.layout || data.Shape || data.shape;
+    if (layout && Array.isArray(layout)) {
+      if (layout.length === 0) {
+        warnings.push("Layout 不能为空");
       }
-      shape.forEach((row: string, index: number) => {
+      layout.forEach((row: string, index: number) => {
         if (typeof row !== "string") {
-          warnings.push(`Shape 第 ${index + 1} 行格式错误：应为字符串`);
+          warnings.push(`Layout 第 ${index + 1} 行格式错误：应为字符串`);
         } else if (row.length !== 9) {
-          warnings.push(`Shape 第 ${index + 1} 行长度错误：应为 9 个字符`);
+          warnings.push(`Layout 第 ${index + 1} 行长度错误：应为 9 个字符`);
         }
       });
     }
@@ -154,11 +173,11 @@ export function importMenuFromFile(file: File): Promise<MenuConfig> {
 // ========== 辅助函数 ==========
 
 /**
- * 解析物品
+ * 解析物品（多页支持）
  */
-function parseItems(
+function parseItemsMultiPage(
   itemsData: Record<string, unknown>,
-  shape: string[]
+  layoutPages: string[][]
 ): MenuItem[] {
   const items: MenuItem[] = [];
   const symbolMap = new Map<string, Record<string, unknown>>();
@@ -168,31 +187,71 @@ function parseItems(
     symbolMap.set(symbol, config as Record<string, unknown>);
   });
 
-  // 遍历 Shape，找出每个物品的位置
-  shape.forEach((row, rowIndex) => {
-    for (let colIndex = 0; colIndex < row.length; colIndex++) {
-      const symbol = row[colIndex];
-      if (symbol === " ") continue;
+  // 遍历每一页
+  layoutPages.forEach((page, pageIndex) => {
+    page.forEach((row, rowIndex) => {
+      // 处理字符串中的反引号包裹的多字符符号
+      let colIndex = 0;
+      let i = 0;
+      while (i < row.length) {
+        if (row[i] === "`") {
+          // 找到反引号包裹的符号
+          const endIndex = row.indexOf("`", i + 1);
+          if (endIndex !== -1) {
+            const symbol = row.substring(i + 1, endIndex);
+            const config = symbolMap.get(symbol);
+            if (config) {
+              const slot = rowIndex * 9 + colIndex;
+              const item = parseItem(config, slot, pageIndex);
+              items.push(item);
+            }
+            i = endIndex + 1;
+            colIndex++;
+            continue;
+          }
+        }
 
-      const config = symbolMap.get(symbol);
-      if (!config) continue;
-
-      const slot = rowIndex * 9 + colIndex;
-      const item = parseItem(config, slot);
-      items.push(item);
-    }
+        // 单字符符号
+        const symbol = row[i];
+        if (symbol !== " ") {
+          const config = symbolMap.get(symbol);
+          if (config) {
+            const slot = rowIndex * 9 + colIndex;
+            const item = parseItem(config, slot, pageIndex);
+            items.push(item);
+          }
+        }
+        i++;
+        colIndex++;
+      }
+    });
   });
 
   return items;
 }
 
 /**
+ * 解析物品（单页，向后兼容）
+ */
+function parseItems(
+  itemsData: Record<string, unknown>,
+  shape: string[]
+): MenuItem[] {
+  return parseItemsMultiPage(itemsData, [shape]);
+}
+
+/**
  * 解析单个物品
  */
-function parseItem(config: Record<string, unknown>, slot: number): MenuItem {
+function parseItem(
+  config: Record<string, unknown>,
+  slot: number,
+  page: number = 0
+): MenuItem {
   const item: MenuItem = {
-    id: `item-${Date.now()}-${slot}`,
+    id: `item-${Date.now()}-${page}-${slot}-${Math.random()}`,
     slot,
+    page,
     material: String(config.material || config.Material || "STONE"),
   };
 

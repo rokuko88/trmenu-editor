@@ -12,6 +12,9 @@ interface EditorUIState {
   pluginPanelExpanded: boolean;
   activePluginId: string | null;
 
+  // 当前页码（用于多页菜单）
+  currentPage: number;
+
   // 操作方法
   setPropertiesPanelWidth: (width: number) => void;
   setPropertiesPanelCollapsed: (collapsed: boolean) => void;
@@ -22,6 +25,8 @@ interface EditorUIState {
   setPluginPanelExpanded: (expanded: boolean) => void;
   setActivePluginId: (id: string | null) => void;
   togglePluginPanel: (pluginId?: string) => void;
+
+  setCurrentPage: (page: number) => void;
 }
 
 export const useEditorStore = create<EditorUIState>()(
@@ -35,6 +40,8 @@ export const useEditorStore = create<EditorUIState>()(
       pluginPanelWidth: 320,
       pluginPanelExpanded: false,
       activePluginId: null,
+
+      currentPage: 0,
 
       // 属性面板操作
       setPropertiesPanelWidth: (width) => set({ propertiesPanelWidth: width }),
@@ -72,10 +79,21 @@ export const useEditorStore = create<EditorUIState>()(
           set({ pluginPanelExpanded: !state.pluginPanelExpanded });
         }
       },
+
+      setCurrentPage: (page) => set({ currentPage: page }),
     }),
     {
       name: "editor-ui-storage",
       storage: createJSONStorage(() => localStorage),
+      // 排除 currentPage，避免在切换菜单时保留旧的页码
+      partialize: (state) => ({
+        propertiesPanelWidth: state.propertiesPanelWidth,
+        propertiesPanelCollapsed: state.propertiesPanelCollapsed,
+        pluginPanelWidth: state.pluginPanelWidth,
+        pluginPanelExpanded: state.pluginPanelExpanded,
+        activePluginId: state.activePluginId,
+        // currentPage 不持久化
+      }),
     }
   )
 );

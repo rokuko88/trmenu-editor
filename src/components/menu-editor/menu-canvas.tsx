@@ -11,6 +11,10 @@ import {
   ChevronDown,
   ChevronUp,
   GripVertical,
+  ChevronLeft,
+  ChevronRight,
+  FilePlus,
+  FileX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,6 +33,7 @@ import { CanvasToolbar } from "./canvas-toolbar";
 import { CodeEditor } from "./code-editor";
 import { useSelection } from "@/hooks/use-selection";
 import { useConfirm } from "@/hooks/use-confirm";
+import { useEditorStore } from "@/store/editor-store";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "visual" | "code";
@@ -75,6 +80,18 @@ export function MenuCanvas({
   const resizeStartRef = useRef<{ y: number; initialRows: number } | null>(
     null
   );
+
+  // 获取当前页码
+  const currentPage = useEditorStore((state) => state.currentPage);
+  const setCurrentPage = useEditorStore((state) => state.setCurrentPage);
+
+  // 确保当前页码在有效范围内
+  const pages = menu.pages || 1;
+  useEffect(() => {
+    if (currentPage >= pages && pages > 0) {
+      setCurrentPage(Math.max(0, pages - 1));
+    }
+  }, [pages, setCurrentPage]); // 移除 currentPage 依赖避免循环
   const { confirm, ConfirmDialog } = useConfirm();
 
   // 使用框选 hook
@@ -351,9 +368,13 @@ export function MenuCanvas({
   // 获取指定槽位的物品
   const getItemAtSlot = useCallback(
     (slot: number): MenuItem | undefined => {
-      return menu.items.find((item) => item.slot === slot);
+      return menu.items.find(
+        (item) =>
+          item.slot === slot &&
+          (item.page === currentPage || (!item.page && currentPage === 0))
+      );
     },
-    [menu.items]
+    [menu.items, currentPage]
   );
 
   // 渲染槽位
@@ -603,7 +624,7 @@ export function MenuCanvas({
             <div className="pointer-events-none relative z-10 w-full max-w-xl space-y-4">
               {/* 菜单标题栏 */}
               <div className="flex items-center justify-between px-1">
-                <div>
+                <div className="flex-1">
                   <h2 className="text-sm font-medium">
                     {Array.isArray(menu.title) ? menu.title[0] : menu.title}
                     {Array.isArray(menu.title) && menu.title.length > 1 && (
@@ -614,11 +635,163 @@ export function MenuCanvas({
                   </h2>
                   <p className="text-muted-foreground text-xs">
                     {menu.type} • {menu.size} 槽位 ({rows} 行) •{" "}
-                    {menu.items.length} 项
+                    {
+                      menu.items.filter(
+                        (item) =>
+                          item.page === currentPage ||
+                          (!item.page && currentPage === 0)
+                      ).length
+                    }{" "}
+                    项
                     {Array.isArray(menu.title) &&
                       menu.title.length > 1 &&
                       menu.titleUpdate && <> • {menu.titleUpdate} ticks</>}
                   </p>
+                </div>
+                {/* 多页切换 */}
+                <div className="pointer-events-auto flex items-center gap-1">
+                  {pages > 1 && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const newPage = Math.max(0, currentPage - 1);
+                          setCurrentPage(newPage);
+                        }}
+                        disabled={currentPage === 0}
+                        title="上一页"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                      </Button>
+                      <span className="text-muted-foreground px-2 text-xs">
+                        第 {currentPage + 1} / {pages} 页
+                      </span>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const newPage = Math.min(pages - 1, currentPage + 1);
+                          setCurrentPage(newPage);
+                        }}
+                        disabled={currentPage >= pages - 1}
+                        title="下一页"
+                      >
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </>
+                  )}
+                  {/* 新建页按钮 */}
+                  {pages < 10 && onMenuUpdate && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="hover:bg-primary/10 h-7 w-7"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const shouldCopy = await confirm({
+                          title: "创建新页面",
+                          description: `是否复制当前页（第 ${currentPage + 1} 页）的物品到新页面？\n\n点击"确认"复制当前页\n点击"取消"创建空白页`,
+                        });
+
+                        const newPageIndex = pages; // 新页面的索引
+                        const newPages = pages + 1;
+
+                        if (shouldCopy) {
+                          // 复制当前页的物品到新页
+                          const currentPageItems = menu.items.filter(
+                            (item) =>
+                              item.page === currentPage ||
+                              (!item.page && currentPage === 0)
+                          );
+
+                          const newItems = currentPageItems.map((item) => ({
+                            ...item,
+                            id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                            page: newPageIndex,
+                          }));
+
+                          // 更新菜单：增加页数并添加复制的物品
+                          onMenuUpdate({
+                            pages: newPages,
+                            items: [...menu.items, ...newItems],
+                          });
+                        } else {
+                          // 只增加页数，不复制物品
+                          onMenuUpdate({ pages: newPages });
+                        }
+
+                        // 切换到新页面
+                        setTimeout(() => setCurrentPage(newPageIndex), 100);
+                      }}
+                      disabled={pages >= 10}
+                      title={
+                        pages >= 10 ? "最多支持 10 页" : "基于当前页创建新页"
+                      }
+                    >
+                      <FilePlus className="h-4 w-4" />
+                    </Button>
+                  )}
+                  {/* 删除页按钮 */}
+                  {pages > 1 && onMenuUpdate && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:bg-destructive/10 hover:text-destructive h-7 w-7"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+
+                        // 统计当前页的物品数量
+                        const currentPageItems = menu.items.filter(
+                          (item) =>
+                            item.page === currentPage ||
+                            (!item.page && currentPage === 0)
+                        );
+
+                        const shouldDelete = await confirm({
+                          title: "删除当前页",
+                          description: `确定要删除第 ${currentPage + 1} 页吗？\n\n该页有 ${currentPageItems.length} 个物品，删除后无法恢复！`,
+                        });
+
+                        if (!shouldDelete) return;
+
+                        // 删除当前页的所有物品
+                        const remainingItems = menu.items.filter(
+                          (item) =>
+                            item.page !== currentPage &&
+                            !(item.page === undefined && currentPage === 0)
+                        );
+
+                        // 调整后续页面的页码
+                        const updatedItems = remainingItems.map((item) => {
+                          if (
+                            item.page !== undefined &&
+                            item.page > currentPage
+                          ) {
+                            return { ...item, page: item.page - 1 };
+                          }
+                          return item;
+                        });
+
+                        // 更新菜单：减少页数并更新物品列表
+                        onMenuUpdate({
+                          pages: pages - 1,
+                          items: updatedItems,
+                        });
+
+                        // 切换到前一页（如果删除的是第一页则保持在第一页）
+                        const targetPage = Math.max(0, currentPage - 1);
+                        setTimeout(() => setCurrentPage(targetPage), 100);
+                      }}
+                      title="删除当前页"
+                    >
+                      <FileX className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
 

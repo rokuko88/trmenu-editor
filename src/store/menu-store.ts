@@ -93,6 +93,7 @@ export const useMenuStore = create<MenuStore>()(
           size: 27,
           type: "CHEST",
           items: [],
+          pages: 1, // 默认单页
           variables: [], // 初始化空变量列表
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),

@@ -592,6 +592,30 @@ function MenuProperties({
 
       <Separator />
 
+      {/* 多页功能 */}
+      <div className="space-y-2">
+        <Label htmlFor="menu-pages" className="text-sm">
+          页数
+        </Label>
+        <Input
+          id="menu-pages"
+          type="number"
+          min={1}
+          max={10}
+          value={menu.pages || 1}
+          onChange={(e) => {
+            const newPages = Math.max(1, Math.min(10, Number(e.target.value)));
+            onUpdate({ pages: newPages });
+          }}
+          className="text-sm"
+        />
+        <p className="text-muted-foreground text-xs">
+          设置菜单的总页数（1-10 页）
+        </p>
+      </div>
+
+      <Separator />
+
       <div className="grid grid-cols-2 gap-4 text-sm">
         <div className="space-y-1">
           <div className="text-muted-foreground">已使用</div>
@@ -600,7 +624,7 @@ function MenuProperties({
         <div className="space-y-1">
           <div className="text-muted-foreground">空位</div>
           <div className="text-2xl font-semibold">
-            {menu.size - menu.items.length}
+            {menu.size * (menu.pages || 1) - menu.items.length}
           </div>
         </div>
       </div>
