@@ -156,24 +156,14 @@ export function PropertiesPanel({
         <ScrollArea className="flex-1">
           <div className="p-4 space-y-4">
             {/* 根据视图显示不同内容 */}
-            {panelView === "menu" ? (
-              <MenuProperties menu={menu} onUpdate={onMenuUpdate} />
+            {panelView === "slot" && selectedItem ? (
+              <ItemProperties
+                item={selectedItem}
+                onUpdate={(updates) => onItemUpdate(selectedItem.id, updates)}
+                onDelete={() => onItemDelete(selectedItem.id)}
+              />
             ) : (
-              <>
-                {selectedItem ? (
-                  <ItemProperties
-                    item={selectedItem}
-                    onUpdate={(updates) =>
-                      onItemUpdate(selectedItem.id, updates)
-                    }
-                    onDelete={() => onItemDelete(selectedItem.id)}
-                  />
-                ) : (
-                  <div className="text-center py-12 text-sm text-muted-foreground">
-                    请先选择一个槽位
-                  </div>
-                )}
-              </>
+              <MenuProperties menu={menu} onUpdate={onMenuUpdate} />
             )}
           </div>
         </ScrollArea>
