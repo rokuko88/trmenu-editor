@@ -145,10 +145,10 @@ export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
       <Button
         variant="outline"
         size="sm"
-        className="w-full h-9 text-sm"
+        className="h-9 w-full text-sm"
         onClick={handleAddAction}
       >
-        <Plus className="h-4 w-4 mr-2" />
+        <Plus className="mr-2 h-4 w-4" />
         添加动作
       </Button>
 
@@ -223,7 +223,7 @@ function ActionItem({
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
-      <div className="group border rounded-md bg-card hover:bg-accent/50 transition-colors">
+      <div className="group bg-card hover:bg-accent/50 rounded-md border transition-colors">
         <div className="flex items-center gap-2 p-2">
           {/* 展开/收起按钮 */}
           <CollapsibleTrigger asChild>
@@ -237,13 +237,13 @@ function ActionItem({
           </CollapsibleTrigger>
 
           {/* 动作图标和类型 */}
-          <div className="flex items-center gap-1.5 flex-1 min-w-0">
-            <ActionIcon className="h-3.5 w-3.5 shrink-0 text-primary" />
-            <span className="text-xs font-medium truncate">
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <ActionIcon className="text-primary h-3.5 w-3.5 shrink-0" />
+            <span className="truncate text-xs font-medium">
               {actionData.label}
             </span>
             {action.priority && action.priority > 0 && (
-              <Badge variant="secondary" className="text-[9px] h-4 px-1">
+              <Badge variant="secondary" className="h-4 px-1 text-[9px]">
                 P{action.priority}
               </Badge>
             )}
@@ -264,7 +264,7 @@ function ActionItem({
           </div>
 
           {/* 操作按钮 */}
-          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
             {/* 上移 */}
             <TooltipProvider>
               <Tooltip>
@@ -331,7 +331,7 @@ function ActionItem({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-6 w-6 text-destructive hover:text-destructive"
+                    className="text-destructive hover:text-destructive h-6 w-6"
                     onClick={onDelete}
                   >
                     <Trash2 className="h-3 w-3" />
@@ -347,16 +347,16 @@ function ActionItem({
 
         {/* 展开内容 */}
         <CollapsibleContent>
-          <div className="px-2 pb-2 space-y-1 border-t pt-2 mt-1">
-            <div className="text-[10px] text-muted-foreground space-y-0.5">
+          <div className="mt-1 space-y-1 border-t px-2 pt-2 pb-2">
+            <div className="text-muted-foreground space-y-0.5 text-[10px]">
               <div className="flex items-center gap-1">
                 <span className="font-medium">点击类型:</span>
-                <Badge variant="outline" className="text-[9px] h-4">
+                <Badge variant="outline" className="h-4 text-[9px]">
                   {getClickTypeLabel(action.clickType)}
                 </Badge>
               </div>
               <div className="flex items-start gap-1">
-                <span className="font-medium shrink-0">值:</span>
+                <span className="shrink-0 font-medium">值:</span>
                 <span className="font-mono break-all">
                   {action.value || "无"}
                 </span>
@@ -420,7 +420,7 @@ function ActionEditDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] flex flex-col">
+      <DialogContent className="flex max-h-[90vh] max-w-2xl flex-col">
         <DialogHeader>
           <DialogTitle>{action.value ? "编辑动作" : "添加动作"}</DialogTitle>
           <DialogDescription>配置物品点击时执行的动作</DialogDescription>
@@ -495,12 +495,12 @@ function ActionEditDialog({
                     editedAction.type === "COMMAND"
                       ? "例如: give {player} diamond 1"
                       : editedAction.type === "OPEN_MENU"
-                      ? "例如: shop"
-                      : "例如: §a操作成功！"
+                        ? "例如: shop"
+                        : "例如: §a操作成功！"
                   }
                   className="font-mono text-sm"
                 />
-                <p className="text-xs text-muted-foreground">
+                <p className="text-muted-foreground text-xs">
                   {editedAction.type === "COMMAND" &&
                     "支持变量：{player}, {uuid}, {world} 等"}
                   {editedAction.type === "OPEN_MENU" &&
@@ -529,7 +529,7 @@ function ActionEditDialog({
                 min={0}
                 max={100}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 数字越大优先级越高，默认为 0
               </p>
             </div>
@@ -547,18 +547,18 @@ function ActionEditDialog({
                   onClick={handleAddCondition}
                   className="h-7 text-xs"
                 >
-                  <Plus className="h-3 w-3 mr-1" />
+                  <Plus className="mr-1 h-3 w-3" />
                   添加条件
                 </Button>
               </div>
 
               {editedAction.conditions &&
                 editedAction.conditions.length > 0 && (
-                  <div className="space-y-2 p-3 border rounded-md bg-muted/30">
+                  <div className="bg-muted/30 space-y-2 rounded-md border p-3">
                     {editedAction.conditions.map((condition, index) => (
                       <div
                         key={index}
-                        className="space-y-2 p-2 border rounded bg-background"
+                        className="bg-background space-y-2 rounded border p-2"
                       >
                         <div className="flex items-center gap-2">
                           <Select
@@ -583,18 +583,18 @@ function ActionEditDialog({
                               })
                             }
                             placeholder="Kether 表达式，例如: perm *admin"
-                            className="flex-1 h-7 font-mono text-xs"
+                            className="h-7 flex-1 font-mono text-xs"
                           />
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-7 w-7 text-destructive"
+                            className="text-destructive h-7 w-7"
                             onClick={() => handleDeleteCondition(index)}
                           >
                             <Trash2 className="h-3 w-3" />
                           </Button>
                         </div>
-                        <p className="text-[10px] text-muted-foreground">
+                        <p className="text-muted-foreground text-[10px]">
                           {condition.type === "require"
                             ? "玩家必须满足此条件才能执行动作"
                             : "玩家满足此条件则禁止执行动作"}

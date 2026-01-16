@@ -33,19 +33,81 @@ TrMenu Editor 是一个专为 Minecraft [TrMenu](https://github.com/TrMenu/TrMen
 
 ## 快速开始
 
+### 环境要求
+
+- Node.js >= 20.x
+- npm / pnpm / yarn
+
+### 安装和运行
+
 ```bash
 # 安装依赖
-pnpm install
+npm install
+
+# 初始化 Git Hooks（首次安装后执行）
+npm run prepare
 
 # 开发模式
-pnpm dev
+npm run dev
 
 # 构建生产版本
-pnpm build
+npm run build
 
 # 预览生产构建
-pnpm start
+npm run start
 ```
+
+### 开发命令
+
+```bash
+# 代码检查
+npm run lint          # ESLint 检查
+npm run lint:fix      # 自动修复 ESLint 问题
+
+# 代码格式化
+npm run format        # Prettier 格式化
+npm run format:check  # 检查代码格式
+
+# 类型检查
+npm run type-check    # TypeScript 类型检查
+
+# 全面检查
+npm run check-all     # 运行所有检查
+```
+
+## 工程化配置
+
+本项目采用标准的前端工程化实践：
+
+### 代码质量
+
+- **ESLint** - JavaScript/TypeScript 代码检查
+- **Prettier** - 代码格式化
+- **TypeScript** - 类型安全
+- **EditorConfig** - 编辑器配置统一
+
+### Git 工作流
+
+- **Husky** - Git Hooks 管理
+- **lint-staged** - 提交前自动检查和格式化
+- **commitlint** - 提交消息规范检查
+
+### 提交规范
+
+遵循 [Conventional Commits](https://www.conventionalcommits.org/) 规范：
+
+```bash
+feat: 添加新功能
+fix: 修复 bug
+docs: 文档更新
+style: 代码格式调整
+refactor: 代码重构
+perf: 性能优化
+test: 添加测试
+chore: 构建或辅助工具的变动
+```
+
+详细的开发指南请查看 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 ## 许可证
 
