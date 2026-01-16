@@ -259,12 +259,7 @@ export function DndMenuProvider({
         onDragCancel={handleDragCancel}
       >
         {children}
-        <DragOverlay 
-          dropAnimation={{
-            duration: 200,
-            easing: "ease",
-          }}
-        >
+        <DragOverlay dropAnimation={null}>
           {isDragging && renderDragOverlay()}
         </DragOverlay>
       </DndContext>

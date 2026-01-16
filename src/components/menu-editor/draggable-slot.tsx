@@ -60,7 +60,9 @@ export function DraggableSlot({
       ref={setRefs}
       data-slot={slot}
       className={cn(
-        "relative aspect-square bg-background transition-all duration-150",
+        "relative aspect-square bg-background",
+        // 只对背景色和边框色应用过渡，opacity 立即变化
+        "transition-[background-color,border-color] duration-150",
         // 默认边框（没有智能边框时）
         !hasSmartBorders && "border",
         // 选中状态（单独选中，不在选区中）
@@ -68,8 +70,8 @@ export function DraggableSlot({
         // 拖动悬停状态
         isDragOver &&
           "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1",
-        // 正在被拖动
-        isBeingDragged && "opacity-40",
+        // 正在被拖动 - 立即变化，不使用过渡
+        isBeingDragged && "opacity-40! transition-none!",
         // 可拖动光标
         children && "cursor-move",
         // 默认状态边框颜色（没有被选中也没有在选区中）
