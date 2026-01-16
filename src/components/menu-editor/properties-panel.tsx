@@ -27,7 +27,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -106,12 +105,12 @@ export function PropertiesPanel({
   }, [isResizing, setPanelWidth]);
 
   return (
-    <div className="relative flex shrink-0">
+    <div className="relative flex h-full shrink-0">
       {/* 面板内容 */}
       <div
         ref={panelRef}
         className={cn(
-          "relative flex flex-col overflow-hidden border-l",
+          "relative flex h-full flex-col overflow-hidden border-l",
           isResizing ? "transition-none" : "transition-all duration-300"
         )}
         style={{ width: isCollapsed ? "0px" : `${panelWidth}px` }}
@@ -162,7 +161,7 @@ export function PropertiesPanel({
           </Breadcrumb>
         </div>
 
-        <ScrollArea className="flex-1">
+        <div className="flex-1 overflow-y-auto">
           <div className="space-y-4 p-4">
             {/* 根据视图显示不同内容 */}
             {panelView === "slot" && selectedItem ? (
@@ -175,7 +174,7 @@ export function PropertiesPanel({
               <MenuProperties menu={menu} onUpdate={onMenuUpdate} />
             )}
           </div>
-        </ScrollArea>
+        </div>
       </div>
 
       {/* 折叠按钮 - 固定在面板左侧中间 */}
