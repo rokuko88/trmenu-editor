@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import type {
   MenuConfig,
   MenuItem,
@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
   Collapsible,
   CollapsibleContent,
@@ -25,9 +25,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ChevronRight } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ActionEditor } from "./action-editor";
+import { cn } from "@/lib/utils";
+import { useEditorStore } from "@/store/editor-store";
 
 interface PropertiesPanelProps {
   menu: MenuConfig;
@@ -46,156 +47,232 @@ export function PropertiesPanel({
 }: PropertiesPanelProps) {
   const [menuPropsOpen, setMenuPropsOpen] = useState(true);
   const [itemPropsOpen, setItemPropsOpen] = useState(true);
+  const [isResizing, setIsResizing] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // 从 store 获取状态
+  const panelWidth = useEditorStore((state) => state.propertiesPanelWidth);
+  const isCollapsed = useEditorStore((state) => state.propertiesPanelCollapsed);
+  const setPanelWidth = useEditorStore(
+    (state) => state.setPropertiesPanelWidth
+  );
+  const togglePanel = useEditorStore((state) => state.togglePropertiesPanel);
+
+  // 处理拖拽调整宽度
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!panelRef.current) return;
+      const panelRect = panelRef.current.getBoundingClientRect();
+      const newWidth = panelRect.right - e.clientX;
+      // 限制宽度在 240px 到 600px 之间
+      const constrainedWidth = Math.max(240, Math.min(600, newWidth));
+      setPanelWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, setPanelWidth]);
 
   return (
-    <div className="w-80 border-l flex flex-col overflow-hidden">
-      <ScrollArea className="flex-1">
-        <div className="p-2 space-y-2">
-          {/* 菜单属性 */}
-          <Collapsible open={menuPropsOpen} onOpenChange={setMenuPropsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
-              <span className="text-xs  text-muted-foreground uppercase tracking-wider">
-                菜单配置
-              </span>
-              <ChevronRight
-                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
-                  menuPropsOpen ? "rotate-90" : ""
-                }`}
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3 space-y-3">
-              <div className="space-y-1">
-                <Label htmlFor="menu-title" className="text-sm ">
-                  标题
-                </Label>
-                <Input
-                  id="menu-title"
-                  value={menu.title}
-                  onChange={(e) => onMenuUpdate({ title: e.target.value })}
-                  placeholder="菜单标题"
-                  className="text-sm"
+    <div className="relative flex shrink-0">
+      {/* 面板内容 */}
+      <div
+        ref={panelRef}
+        className={cn(
+          "border-l flex flex-col overflow-hidden relative",
+          isResizing ? "transition-none" : "transition-all duration-300"
+        )}
+        style={{ width: isCollapsed ? "0px" : `${panelWidth}px` }}
+      >
+        {/* 拖拽调整宽度的手柄 */}
+        {!isCollapsed && (
+          <div
+            className={cn(
+              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize transition-colors group z-10",
+              isResizing ? "bg-primary/70" : "hover:bg-primary/50"
+            )}
+            onMouseDown={() => setIsResizing(true)}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary/30" />
+          </div>
+        )}
+
+        <ScrollArea className="flex-1">
+          <div className="p-2 space-y-2">
+            {/* 菜单属性 */}
+            <Collapsible open={menuPropsOpen} onOpenChange={setMenuPropsOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
+                <span className="text-xs  text-muted-foreground uppercase tracking-wider">
+                  菜单配置
+                </span>
+                <ChevronRight
+                  className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
+                    menuPropsOpen ? "rotate-90" : ""
+                  }`}
                 />
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="menu-size" className="text-sm ">
-                  大小
-                </Label>
-                <Select
-                  value={menu.size.toString()}
-                  onValueChange={(value: string) =>
-                    onMenuUpdate({ size: Number(value) as MenuSize })
-                  }
-                >
-                  <SelectTrigger id="menu-size" className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="9" className="text-sm">
-                      9 格 (1 行)
-                    </SelectItem>
-                    <SelectItem value="18" className="text-sm">
-                      18 格 (2 行)
-                    </SelectItem>
-                    <SelectItem value="27" className="text-sm">
-                      27 格 (3 行)
-                    </SelectItem>
-                    <SelectItem value="36" className="text-sm">
-                      36 格 (4 行)
-                    </SelectItem>
-                    <SelectItem value="45" className="text-sm">
-                      45 格 (5 行)
-                    </SelectItem>
-                    <SelectItem value="54" className="text-sm">
-                      54 格 (6 行)
-                    </SelectItem>
-                    <SelectItem value="63" className="text-sm">
-                      63 格 (7 行)
-                    </SelectItem>
-                    <SelectItem value="72" className="text-sm">
-                      72 格 (8 行)
-                    </SelectItem>
-                    <SelectItem value="81" className="text-sm">
-                      81 格 (9 行)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1">
-                <Label htmlFor="menu-type" className="text-sm ">
-                  类型
-                </Label>
-                <Select
-                  value={menu.type}
-                  onValueChange={(value: string) =>
-                    onMenuUpdate({ type: value as MenuType })
-                  }
-                >
-                  <SelectTrigger id="menu-type" className="text-sm">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CHEST" className="text-sm">
-                      箱子 (CHEST)
-                    </SelectItem>
-                    <SelectItem value="HOPPER" className="text-sm">
-                      漏斗 (HOPPER)
-                    </SelectItem>
-                    <SelectItem value="DISPENSER" className="text-sm">
-                      发射器 (DISPENSER)
-                    </SelectItem>
-                    <SelectItem value="DROPPER" className="text-sm">
-                      投掷器 (DROPPER)
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
-                <div className="text-muted-foreground">
-                  <span className="font-medium">{menu.items.length}</span> 项
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3 space-y-3">
+                <div className="space-y-1">
+                  <Label htmlFor="menu-title" className="text-sm ">
+                    标题
+                  </Label>
+                  <Input
+                    id="menu-title"
+                    value={menu.title}
+                    onChange={(e) => onMenuUpdate({ title: e.target.value })}
+                    placeholder="菜单标题"
+                    className="text-sm"
+                  />
                 </div>
-                <div className="text-muted-foreground text-right">
-                  <span className="font-medium">
-                    {menu.size - menu.items.length}
-                  </span>{" "}
-                  空位
+
+                <div className="space-y-1">
+                  <Label htmlFor="menu-size" className="text-sm ">
+                    大小
+                  </Label>
+                  <Select
+                    value={menu.size.toString()}
+                    onValueChange={(value: string) =>
+                      onMenuUpdate({ size: Number(value) as MenuSize })
+                    }
+                  >
+                    <SelectTrigger id="menu-size" className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="9" className="text-sm">
+                        9 格 (1 行)
+                      </SelectItem>
+                      <SelectItem value="18" className="text-sm">
+                        18 格 (2 行)
+                      </SelectItem>
+                      <SelectItem value="27" className="text-sm">
+                        27 格 (3 行)
+                      </SelectItem>
+                      <SelectItem value="36" className="text-sm">
+                        36 格 (4 行)
+                      </SelectItem>
+                      <SelectItem value="45" className="text-sm">
+                        45 格 (5 行)
+                      </SelectItem>
+                      <SelectItem value="54" className="text-sm">
+                        54 格 (6 行)
+                      </SelectItem>
+                      <SelectItem value="63" className="text-sm">
+                        63 格 (7 行)
+                      </SelectItem>
+                      <SelectItem value="72" className="text-sm">
+                        72 格 (8 行)
+                      </SelectItem>
+                      <SelectItem value="81" className="text-sm">
+                        81 格 (9 行)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
 
-          <Separator />
+                <div className="space-y-1">
+                  <Label htmlFor="menu-type" className="text-sm ">
+                    类型
+                  </Label>
+                  <Select
+                    value={menu.type}
+                    onValueChange={(value: string) =>
+                      onMenuUpdate({ type: value as MenuType })
+                    }
+                  >
+                    <SelectTrigger id="menu-type" className="text-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CHEST" className="text-sm">
+                        箱子 (CHEST)
+                      </SelectItem>
+                      <SelectItem value="HOPPER" className="text-sm">
+                        漏斗 (HOPPER)
+                      </SelectItem>
+                      <SelectItem value="DISPENSER" className="text-sm">
+                        发射器 (DISPENSER)
+                      </SelectItem>
+                      <SelectItem value="DROPPER" className="text-sm">
+                        投掷器 (DROPPER)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-          {/* 物品属性 */}
-          <Collapsible open={itemPropsOpen} onOpenChange={setItemPropsOpen}>
-            <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                {selectedItem ? "物品配置" : "未选中"}
-              </span>
-              <ChevronRight
-                className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
-                  itemPropsOpen ? "rotate-90" : ""
-                }`}
-              />
-            </CollapsibleTrigger>
-            <CollapsibleContent className="mt-3">
-              {selectedItem ? (
-                <ItemProperties
-                  item={selectedItem}
-                  onUpdate={(updates) => onItemUpdate(selectedItem.id, updates)}
-                  onDelete={() => onItemDelete(selectedItem.id)}
+                <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
+                  <div className="text-muted-foreground">
+                    <span className="font-medium">{menu.items.length}</span> 项
+                  </div>
+                  <div className="text-muted-foreground text-right">
+                    <span className="font-medium">
+                      {menu.size - menu.items.length}
+                    </span>{" "}
+                    空位
+                  </div>
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+
+            <Separator />
+
+            {/* 物品属性 */}
+            <Collapsible open={itemPropsOpen} onOpenChange={setItemPropsOpen}>
+              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
+                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  {selectedItem ? "物品配置" : "未选中"}
+                </span>
+                <ChevronRight
+                  className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
+                    itemPropsOpen ? "rotate-90" : ""
+                  }`}
                 />
-              ) : (
-                <div className="text-center py-12 text-xs text-muted-foreground">
-                  选择一个物品以编辑
-                </div>
-              )}
-            </CollapsibleContent>
-          </Collapsible>
-        </div>
-      </ScrollArea>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-3">
+                {selectedItem ? (
+                  <ItemProperties
+                    item={selectedItem}
+                    onUpdate={(updates) =>
+                      onItemUpdate(selectedItem.id, updates)
+                    }
+                    onDelete={() => onItemDelete(selectedItem.id)}
+                  />
+                ) : (
+                  <div className="text-center py-12 text-xs text-muted-foreground">
+                    选择一个物品以编辑
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
+          </div>
+        </ScrollArea>
+      </div>
+
+      {/* 折叠按钮 - 固定在面板左侧中间 */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full h-10 w-5 rounded-r-none rounded-l-sm border border-r-0 bg-background hover:bg-accent z-20 shadow-sm"
+        onClick={togglePanel}
+        title={isCollapsed ? "展开属性面板" : "折叠属性面板"}
+      >
+        {isCollapsed ? (
+          <ChevronLeft className="h-4 w-4" />
+        ) : (
+          <ChevronRight className="h-4 w-4" />
+        )}
+      </Button>
     </div>
   );
 }

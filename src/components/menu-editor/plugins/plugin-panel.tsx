@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useEditorStore } from "@/store/editor-store";
 
 interface PluginPanelProps {
   plugins: Plugin[];
@@ -19,36 +20,87 @@ interface PluginPanelProps {
 }
 
 export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
-  const [activePluginId, setActivePluginId] = useState<string | null>(
-    plugins[0]?.id || null
-  );
+  const [isResizing, setIsResizing] = useState(false);
+  const panelRef = useRef<HTMLDivElement>(null);
+
+  // 从 store 获取状态
+  const isExpanded = useEditorStore((state) => state.pluginPanelExpanded);
+  const activePluginId = useEditorStore((state) => state.activePluginId);
+  const panelWidth = useEditorStore((state) => state.pluginPanelWidth);
+  const setPanelWidth = useEditorStore((state) => state.setPluginPanelWidth);
+  const togglePanel = useEditorStore((state) => state.togglePluginPanel);
+  const setExpanded = useEditorStore((state) => state.setPluginPanelExpanded);
+  const setActivePluginId = useEditorStore((state) => state.setActivePluginId);
+
+  // 初始化默认插件
+  useEffect(() => {
+    if (!activePluginId && plugins.length > 0) {
+      setActivePluginId(plugins[0].id);
+    }
+  }, [activePluginId, plugins, setActivePluginId]);
 
   const activePlugin = plugins.find((p) => p.id === activePluginId);
 
   // 处理插件点击
   const handlePluginClick = (pluginId: string) => {
-    if (pluginId === activePluginId && isExpanded) {
-      // 如果点击的是当前激活的插件，并且面板已展开，则收起
-      setIsExpanded(false);
-    } else {
-      // 否则切换插件并展开
-      setActivePluginId(pluginId);
-      setIsExpanded(true);
-    }
+    togglePanel(pluginId);
   };
+
+  // 处理拖拽调整宽度
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!panelRef.current) return;
+      const panelRect = panelRef.current.getBoundingClientRect();
+      const newWidth = panelRect.right - e.clientX;
+      // 限制宽度在 240px 到 600px 之间
+      const constrainedWidth = Math.max(240, Math.min(600, newWidth));
+      setPanelWidth(constrainedWidth);
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizing, setPanelWidth]);
 
   return (
     <div className="flex h-full">
       {/* 插件面板内容 */}
       <div
+        ref={panelRef}
         className={cn(
-          "transition-all duration-300 border-l overflow-hidden shrink-0",
-          isExpanded ? "w-80" : "w-0"
+          "border-l overflow-hidden shrink-0 relative",
+          isResizing ? "transition-none" : "transition-all duration-300"
         )}
+        style={{ width: isExpanded ? `${panelWidth}px` : "0px" }}
       >
+        {/* 拖拽调整宽度的手柄 */}
+        {isExpanded && (
+          <div
+            className={cn(
+              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize transition-colors group z-10",
+              isResizing ? "bg-primary/70" : "hover:bg-primary/50"
+            )}
+            onMouseDown={() => setIsResizing(true)}
+          >
+            <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary/30" />
+          </div>
+        )}
+
         {activePlugin && (
-          <div className="flex flex-col h-full w-80 bg-background/50 backdrop-blur-sm">
+          <div
+            className="flex flex-col h-full bg-background/50 backdrop-blur-sm"
+            style={{ width: `${panelWidth}px` }}
+          >
             {/* 插件头部 - 固定 Layout */}
             <div className="shrink-0 border-b bg-background/80">
               <div className="flex items-center justify-between p-3">
@@ -73,7 +125,7 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8 shrink-0"
-                        onClick={() => setIsExpanded(false)}
+                        onClick={() => setExpanded(false)}
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>

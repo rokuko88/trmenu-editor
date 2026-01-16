@@ -494,7 +494,7 @@ export default function MenuEditorClient() {
           />
 
           {/* 右侧面板容器 */}
-          <div className="flex shrink-0">
+          <div className="flex shrink-0 relative">
             {/* 属性面板 */}
             <PropertiesPanel
               menu={currentMenu}
