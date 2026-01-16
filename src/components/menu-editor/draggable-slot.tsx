@@ -65,11 +65,15 @@ export function DraggableSlot({
         "transition-[background-color,border-color] duration-150",
         // 默认边框（没有智能边框时）
         !hasSmartBorders && "border",
-        // 选中状态（单独选中，不在选区中）
-        isSelected && !isInSelection && "ring-2 ring-primary ring-offset-1",
-        // 拖动悬停状态
+        // 选中状态（单独选中，不在选区中）- 提升 z-index 避免被遮挡
+        isSelected &&
+          !isInSelection &&
+          "ring-2 ring-primary ring-offset-1 z-10",
+        // 框选状态 - 也需要提升 z-index
+        isInSelection && "z-10",
+        // 拖动悬停状态 - 更高的 z-index，带脉冲动画
         isDragOver &&
-          "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1",
+          "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1 z-20 animate-pulse",
         // 正在被拖动 - 立即变化，不使用过渡
         isBeingDragged && "opacity-40! transition-none!",
         // 可拖动光标
@@ -78,7 +82,7 @@ export function DraggableSlot({
         !isSelected &&
           !isInSelection &&
           !isDragOver &&
-          "border-border/40 hover:border-border hover:bg-accent/50"
+          "border-border/40 hover:border-border hover:bg-accent/50 hover:z-5"
       )}
       style={{
         // 智能边框（选区内相邻槽位的边缘才显示边框）
@@ -89,6 +93,8 @@ export function DraggableSlot({
           borderRightWidth: slotBorders.borderRight ? "2px" : "0",
           borderBottomWidth: slotBorders.borderBottom ? "2px" : "0",
           borderLeftWidth: slotBorders.borderLeft ? "2px" : "0",
+          // 确保智能边框不会被 ring-offset 覆盖
+          boxSizing: "border-box",
         }),
       }}
       onClick={onSelect}
@@ -105,11 +111,6 @@ export function DraggableSlot({
         <div className="absolute inset-0 flex items-center justify-center p-1 pointer-events-none">
           {children}
         </div>
-      )}
-
-      {/* 拖动悬停指示器 */}
-      {isDragOver && !isBeingDragged && (
-        <div className="absolute inset-0 border-2 border-primary rounded-sm animate-pulse pointer-events-none" />
       )}
     </div>
   );
