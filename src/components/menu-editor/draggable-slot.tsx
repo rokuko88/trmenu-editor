@@ -17,6 +17,7 @@ interface DraggableSlotProps {
     borderLeft: boolean;
   };
   onSelect?: (e?: React.MouseEvent) => void;
+  className?: string;
 }
 
 export function DraggableSlot({
@@ -26,6 +27,7 @@ export function DraggableSlot({
   isInSelection,
   slotBorders,
   onSelect,
+  className,
 }: DraggableSlotProps) {
   const { draggedSlots, dragOverSlot } = useDndMenu();
 
@@ -82,7 +84,9 @@ export function DraggableSlot({
         !isSelected &&
           !isInSelection &&
           !isDragOver &&
-          "border-border/40 hover:border-border hover:bg-accent/50 hover:z-5"
+          "border-border/40 hover:border-border hover:bg-accent/50 hover:z-5",
+        // 外部传入的自定义样式
+        className
       )}
       style={{
         // 智能边框（选区内相邻槽位的边缘才显示边框）

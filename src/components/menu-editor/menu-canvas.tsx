@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import type { MenuItem, MenuConfig, MenuSize } from "@/types";
 import {
   Plus,
@@ -10,6 +10,7 @@ import {
   Files,
   ChevronDown,
   ChevronUp,
+  GripVertical,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -27,6 +28,7 @@ import { SelectionBox } from "./selection-box";
 import { CanvasToolbar } from "./canvas-toolbar";
 import { CodeEditor } from "./code-editor";
 import { useSelection } from "@/hooks/use-selection";
+import { useConfirm } from "@/hooks/use-confirm";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "visual" | "code";
@@ -68,6 +70,12 @@ export function MenuCanvas({
   const [showPlayerInventory, setShowPlayerInventory] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("visual");
   const [showGrid, setShowGrid] = useState(false);
+  const [isResizingMenu, setIsResizingMenu] = useState(false);
+  const [previewRows, setPreviewRows] = useState<number | null>(null);
+  const resizeStartRef = useRef<{ y: number; initialRows: number } | null>(
+    null
+  );
+  const { confirm, ConfirmDialog } = useConfirm();
 
   // 使用框选 hook
   const {
@@ -355,6 +363,13 @@ export function MenuCanvas({
     const isInSelection = selectedSlots.has(slot);
     const slotBorders = isInSelection ? slotBordersMap.get(slot) : undefined;
 
+    // 检查槽位是否会在调整大小时被删除
+    const willBeRemoved =
+      isResizingMenu &&
+      previewRows !== null &&
+      previewRows < rows &&
+      slot >= previewRows * 9;
+
     return (
       <ContextMenu key={slot}>
         <ContextMenuTrigger>
@@ -363,6 +378,7 @@ export function MenuCanvas({
             isSelected={isSelected}
             isInSelection={isInSelection}
             slotBorders={slotBorders}
+            className={cn(willBeRemoved && "bg-destructive/20 opacity-60")}
             onSelect={(e?: React.MouseEvent) => {
               // 阻止事件冒泡，避免触发画布的取消选中逻辑
               e?.stopPropagation();
@@ -467,18 +483,80 @@ export function MenuCanvas({
     );
   };
 
-  // 检查是否可以添加更多行
-  const canAddRow = menu.type === "CHEST" && menu.size < 81;
-  const maxRows = menu.type === "CHEST" ? 9 : rows;
+  // 检查是否可以调整尺寸（仅 CHEST 类型支持）
+  const canResize = menu.type === "CHEST";
 
-  // 添加一行
-  const handleAddRow = () => {
-    if (!canAddRow || !onMenuUpdate) return;
-    const newSize = (menu.size + 9) as MenuSize;
-    if (newSize <= 81) {
-      onMenuUpdate({ size: newSize });
-    }
-  };
+  // 开始拖拽调整尺寸
+  const handleResizeMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
+      setIsResizingMenu(true);
+      resizeStartRef.current = {
+        y: e.clientY,
+        initialRows: rows,
+      };
+    },
+    [rows]
+  );
+
+  // 拖拽调整尺寸
+  useEffect(() => {
+    if (!isResizingMenu || !resizeStartRef.current) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!resizeStartRef.current) return;
+
+      const deltaY = e.clientY - resizeStartRef.current.y;
+      // 每50px约等于一行的高度，使拖拽更灵敏
+      const rowHeight = 50;
+      const deltaRows = Math.round(deltaY / rowHeight);
+      const targetRows = Math.max(
+        1,
+        Math.min(9, resizeStartRef.current.initialRows + deltaRows)
+      );
+
+      setPreviewRows(targetRows);
+    };
+
+    const handleMouseUp = async () => {
+      if (previewRows !== null && previewRows !== rows && onMenuUpdate) {
+        // 检查是否会删除物品
+        const itemsToRemove = menu.items.filter(
+          (item) => item.slot >= previewRows * 9
+        );
+
+        let shouldProceed = true;
+
+        if (itemsToRemove.length > 0) {
+          // 显示确认对话框
+          shouldProceed = await confirm({
+            title: "确认缩小菜单",
+            description: `缩小菜单将删除 ${itemsToRemove.length} 个物品。此操作不可撤销，确定要继续吗？`,
+            confirmText: "确认删除",
+            cancelText: "取消",
+            variant: "destructive",
+          });
+        }
+
+        if (shouldProceed) {
+          const newSize = (previewRows * 9) as MenuSize;
+          onMenuUpdate({ size: newSize });
+        }
+      }
+      setIsResizingMenu(false);
+      setPreviewRows(null);
+      resizeStartRef.current = null;
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isResizingMenu, previewRows, rows, onMenuUpdate, menu.items, confirm]);
 
   return (
     <DndMenuProvider
@@ -489,6 +567,7 @@ export function MenuCanvas({
       onItemMove={onItemMove}
       onBatchMove={handleBatchDragMove}
     >
+      {ConfirmDialog}
       <div className="flex-1 flex flex-col bg-accent relative">
         {/* Canvas 工具栏 */}
         <CanvasToolbar
@@ -538,15 +617,60 @@ export function MenuCanvas({
                   ref={containerRef}
                   className={cn(
                     "relative bg-card p-2 border transition-all",
-                    canAddRow ? "rounded-t-sm" : "rounded-sm"
+                    canResize ? "rounded-t-sm" : "rounded-sm",
+                    !isResizingMenu && "transition-all duration-200"
                   )}
                   style={{
                     display: "grid",
                     gridTemplateColumns: `repeat(${cols}, 1fr)`,
-                    gridTemplateRows: `repeat(${rows}, 1fr)`,
+                    gridTemplateRows: `repeat(${
+                      isResizingMenu && previewRows !== null
+                        ? previewRows
+                        : rows
+                    }, 1fr)`,
                   }}
                 >
+                  {/* 渲染当前的槽位 */}
                   {Array.from({ length: menu.size }, (_, i) => renderSlot(i))}
+
+                  {/* 拖拽预览：显示额外的空槽位 */}
+                  {isResizingMenu &&
+                    previewRows !== null &&
+                    previewRows > rows &&
+                    Array.from({ length: (previewRows - rows) * 9 }, (_, i) => {
+                      const slot = menu.size + i;
+                      return (
+                        <div
+                          key={`preview-${slot}`}
+                          className="relative aspect-square bg-primary/5 border-2 border-dashed border-primary/50 animate-pulse"
+                        >
+                          <span className="absolute top-0.5 left-0.5 text-[8px] text-primary/70 font-mono leading-none">
+                            {slot}
+                          </span>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <Plus className="h-4 w-4 text-primary/40" />
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                  {/* 缩小预览：删除行提示 */}
+                  {isResizingMenu &&
+                    previewRows !== null &&
+                    previewRows < rows && (
+                      <div
+                        className="absolute left-0 right-0 z-30 pointer-events-none flex items-center justify-center"
+                        style={{
+                          top: `calc(${
+                            (previewRows / (previewRows || 1)) * 100
+                          }%)`,
+                        }}
+                      >
+                        <div className="bg-destructive text-destructive-foreground text-xs px-3 py-1 rounded-full font-medium shadow-lg -mt-3">
+                          删除 {rows - previewRows} 行
+                        </div>
+                      </div>
+                    )}
 
                   {/* 框选矩形 */}
                   {isSelecting && selectionRect && (
@@ -559,16 +683,45 @@ export function MenuCanvas({
                   )}
                 </div>
 
-                {/* 添加行按钮 */}
-                {canAddRow && !showPlayerInventory && (
-                  <Button
-                    variant="outline"
-                    className="w-full h-10 rounded-t-none border-t-0 text-xs text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-colors"
-                    onClick={handleAddRow}
+                {/* 拖拽调整尺寸条 */}
+                {canResize && !showPlayerInventory && (
+                  <div
+                    className={cn(
+                      "relative w-full h-10 rounded-t-none border-t-0 border border-border bg-card",
+                      "flex items-center justify-center gap-2",
+                      "text-xs text-muted-foreground",
+                      "cursor-ns-resize select-none",
+                      "hover:bg-accent/50 hover:text-foreground transition-colors",
+                      isResizingMenu &&
+                        previewRows !== null &&
+                        previewRows < rows
+                        ? "bg-destructive/10 text-destructive border-destructive/30"
+                        : isResizingMenu && "bg-primary/10 text-primary"
+                    )}
+                    onMouseDown={handleResizeMouseDown}
                   >
-                    <Plus className="h-3.5 w-3.5 mr-1.5" />
-                    添加一行 ({rows + 1}/{maxRows})
-                  </Button>
+                    <GripVertical className="h-4 w-4" />
+                    <span>
+                      {isResizingMenu && previewRows !== null ? (
+                        previewRows < rows ? (
+                          <>
+                            调整为 {previewRows} 行 (删除{" "}
+                            {
+                              menu.items.filter(
+                                (item) => item.slot >= previewRows * 9
+                              ).length
+                            }{" "}
+                            个物品)
+                          </>
+                        ) : (
+                          `调整为 ${previewRows} 行 (${previewRows * 9} 槽位)`
+                        )
+                      ) : (
+                        `拖拽调整大小 (${rows} 行)`
+                      )}
+                    </span>
+                    <GripVertical className="h-4 w-4" />
+                  </div>
                 )}
 
                 {/* 玩家物品栏切换按钮 */}
