@@ -67,4 +67,4 @@ pnpm run start
 
 ## 相关项目
 
-- [TrMenu](https://github.com/TrMenu/TrMenu) - Minecraft 服务器菜单插件
+- [TrMenu](https://github.com/CoderKuo/TrMenu) - Minecraft 服务器菜单插件
