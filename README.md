@@ -1,7 +1,5 @@
 # TrMenu Editor
 
-<div align="center">
-
 ![Minecraft](https://img.shields.io/badge/Minecraft-Bukkit-green?style=flat-square&logo=minecraft)
 ![TrMenu](https://img.shields.io/badge/TrMenu-Config_Editor-red?style=flat-square)
 ![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=flat-square&logo=next.js)
@@ -12,7 +10,7 @@
 ![dnd-kit](https://img.shields.io/badge/dnd--kit-6.x-blue?style=flat-square)
 ![License](https://img.shields.io/badge/License-GPLv3-red?style=flat-square)
 
-</div>
+---
 
 <div align="center">
   <img src="public/image.png" alt="TrMenu Editor" width="120" />
