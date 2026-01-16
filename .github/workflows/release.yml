@@ -62,12 +62,9 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: 创建 Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Release ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
             ## 🎉 TrMenu Editor ${{ github.ref_name }}
 
@@ -85,11 +82,9 @@ jobs:
             pnpm start
             ```
 
-            ### 🐳 Docker
+            ### 🔗 在线体验
 
-            ```bash
-            docker pull ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
-            docker run -d -p 3000:3000 ${{ secrets.DOCKER_USERNAME }}/trmenu-editor:${{ github.ref_name }}
-            ```
+            访问：https://rokuko88.github.io/trmenu-editor/
           draft: false
           prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          generate_release_notes: true
