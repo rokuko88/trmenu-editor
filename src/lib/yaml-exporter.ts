@@ -76,7 +76,7 @@ export function exportMenuToYAML(menu: MenuConfig): string {
   }
 
   // Items
-  lines.push(`Items:`);
+  lines.push(`Icons:`);
 
   // 获取唯一的物品（按照符号分组）
   const uniqueItems = getUniqueItems(menu.items);
@@ -85,39 +85,42 @@ export function exportMenuToYAML(menu: MenuConfig): string {
     const symbol = getItemSymbol(item, menu.items);
     lines.push(`  '${symbol}':`);
 
+    lines.push(`    display:`);
+
     // Material
-    lines.push(`    material: ${item.material}`);
+    lines.push(`      material: ${item.material}`);
 
     // Display name
     if (item.displayName) {
-      lines.push(`    name: '${escapeYAML(item.displayName)}'`);
+      lines.push(`      name: '${escapeYAML(item.displayName)}'`);
     }
 
     // Amount
     if (item.amount && item.amount > 1) {
-      lines.push(`    amount: ${item.amount}`);
+      lines.push(`      amount: ${item.amount}`);
     }
 
     // Custom Model Data
     if (item.customModelData) {
-      lines.push(`    model-data: ${item.customModelData}`);
+      lines.push(`      model-data: ${item.customModelData}`);
     }
 
     // Lore
     if (item.lore && item.lore.length > 0) {
-      lines.push(`    lore:`);
+      lines.push(`      lore:`);
       item.lore.forEach((line) => {
-        lines.push(`      - '${escapeYAML(line)}'`);
+        lines.push(`        - '${escapeYAML(line)}'`);
       });
     }
 
     // Actions
     if (item.actions && item.actions.length > 0) {
+      lines.push(`    actions:`);
       const actionsByClick = groupActionsByClickType(item.actions);
 
       Object.entries(actionsByClick).forEach(([clickType, actions]) => {
         const clickKey = formatClickType(clickType as ClickType);
-        lines.push(`    ${clickKey}:`);
+        lines.push(`      ${clickKey}:`);
 
         // 按优先级排序
         const sortedActions = [...actions].sort(
@@ -125,24 +128,35 @@ export function exportMenuToYAML(menu: MenuConfig): string {
         );
 
         sortedActions.forEach((action) => {
+          const requireCondition = action.conditions?.find(
+            (condition) =>
+              condition.type === "require" && condition.expression.trim()
+          );
+          const requireExpression = requireCondition?.expression?.trim();
+
+          // 动作x
+          const actionLine = formatAction(action);
+
           // 条件
           if (action.conditions && action.conditions.length > 0) {
             action.conditions.forEach((condition) => {
               if (condition.type === "require") {
                 lines.push(
-                  `      - condition: '${escapeYAML(condition.expression)}'`
-                );
-              } else {
-                lines.push(
-                  `      - deny: '${escapeYAML(condition.expression)}'`
+                  `        - condition: '${escapeYAML(condition.expression)}'`,
+                  `          actions:`,
+                  `            - ${actionLine}`
                 );
               }
             });
+          } else {
+            lines.push(`        - ${actionLine}`);
           }
 
-          // 动作
-          const actionLine = formatAction(action);
-          lines.push(`      - ${actionLine}`);
+          if (action.denyAction && requireExpression) {
+            lines.push(`          deny:`);
+            const denyActionLine = formatAction(action.denyAction);
+            lines.push(`            - ${denyActionLine}`);
+          }
         });
       });
     }
@@ -325,7 +339,7 @@ function formatClickType(clickType: ClickType): string {
 /**
  * 格式化动作为 TRMenu 格式
  */
-function formatAction(action: MenuAction): string {
+function formatAction(action: Pick<MenuAction, "type" | "value">): string {
   switch (action.type) {
     case "COMMAND":
       return `'command: ${escapeYAML(action.value)}'`;

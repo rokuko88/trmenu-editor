@@ -220,6 +220,18 @@ function ActionItem({
 
   const actionData = getActionData(action.type);
   const ActionIcon = actionData.icon;
+  const hasRequireCondition = Boolean(
+    action.conditions?.some(
+      (condition) => condition.type === "require" && condition.expression.trim()
+    )
+  );
+  const hasDenyAction = Boolean(action.denyAction);
+  const conditionLabel = [
+    hasRequireCondition ? "满足条件" : null,
+    hasDenyAction ? "拒绝动作" : null,
+  ]
+    .filter(Boolean)
+    .join(" / ");
 
   return (
     <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
@@ -247,16 +259,14 @@ function ActionItem({
                 P{action.priority}
               </Badge>
             )}
-            {action.conditions && action.conditions.length > 0 && (
+            {(hasRequireCondition || hasDenyAction) && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
                     <Shield className="h-3 w-3 text-yellow-500" />
                   </TooltipTrigger>
                   <TooltipContent>
-                    <p className="text-xs">
-                      有 {action.conditions.length} 个条件
-                    </p>
+                    <p className="text-xs">包含：{conditionLabel}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
@@ -382,40 +392,72 @@ function ActionEditDialog({
   onSave: (action: MenuAction) => void;
 }) {
   const [editedAction, setEditedAction] = useState<MenuAction>(action);
+  const requireCondition = editedAction.conditions?.find(
+    (condition) => condition.type === "require"
+  );
+  const requireConditionExpression = requireCondition?.expression ?? "";
+  const denyAction = editedAction.denyAction;
+  const denyActionType = denyAction?.type ?? "";
 
   const handleSave = () => {
+    const trimmedCondition = requireConditionExpression.trim();
+    const hasDenyAction =
+      Boolean(denyActionType) &&
+      (denyActionType === "CLOSE" || Boolean(denyAction?.value?.trim()));
+
     // 验证
     if (!editedAction.value && editedAction.type !== "CLOSE") {
       toast.error("请输入动作值");
       return;
     }
+    if (hasDenyAction && !trimmedCondition) {
+      toast.error("请先填写满足条件");
+      return;
+    }
+    if (denyAction && denyActionType !== "CLOSE" && !denyAction.value.trim()) {
+      toast.error("请输入拒绝时执行的动作内容");
+      return;
+    }
     onSave(editedAction);
   };
 
-  const handleAddCondition = () => {
+  const handleConditionChange = (expression: string) => {
+    const otherConditions =
+      editedAction.conditions?.filter(
+        (condition) => condition.type !== "require"
+      ) || [];
+    const trimmed = expression.trim();
+    const nextConditions: ActionCondition[] = trimmed
+      ? [...otherConditions, { type: "require", expression }]
+      : otherConditions;
     setEditedAction({
       ...editedAction,
-      conditions: [
-        ...(editedAction.conditions || []),
-        { type: "require", expression: "" },
-      ],
+      conditions: nextConditions.length > 0 ? nextConditions : [],
     });
   };
 
-  const handleUpdateCondition = (
-    index: number,
-    updates: Partial<ActionCondition>
-  ) => {
-    const newConditions = [...(editedAction.conditions || [])];
-    newConditions[index] = { ...newConditions[index], ...updates };
-    setEditedAction({ ...editedAction, conditions: newConditions });
+  const handleDenyActionTypeChange = (value: ActionType) => {
+    setEditedAction({
+      ...editedAction,
+      denyAction: {
+        type: value,
+        value: denyAction?.value ?? "",
+      },
+    });
   };
 
-  const handleDeleteCondition = (index: number) => {
-    const newConditions = (editedAction.conditions || []).filter(
-      (_, i) => i !== index
-    );
-    setEditedAction({ ...editedAction, conditions: newConditions });
+  const handleDenyActionValueChange = (value: string) => {
+    setEditedAction({
+      ...editedAction,
+      denyAction: {
+        type: denyAction?.type ?? "COMMAND",
+        value,
+      },
+    });
+  };
+
+  const handleClearDenyAction = () => {
+    setEditedAction({ ...editedAction, denyAction: undefined });
   };
 
   return (
@@ -534,75 +576,80 @@ function ActionEditDialog({
               </p>
             </div>
 
-            {/* 条件列表 */}
+            {/* 执行条件 */}
             <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <Label className="flex items-center gap-2">
-                  <Shield className="h-3.5 w-3.5" />
-                  执行条件（可选）
-                </Label>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleAddCondition}
-                  className="h-7 text-xs"
-                >
-                  <Plus className="mr-1 h-3 w-3" />
-                  添加条件
-                </Button>
-              </div>
-
-              {editedAction.conditions &&
-                editedAction.conditions.length > 0 && (
-                  <div className="bg-muted/30 space-y-2 rounded-md border p-3">
-                    {editedAction.conditions.map((condition, index) => (
-                      <div
-                        key={index}
-                        className="bg-background space-y-2 rounded border p-2"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={condition.type}
-                            onValueChange={(value: "require" | "deny") =>
-                              handleUpdateCondition(index, { type: value })
-                            }
-                          >
-                            <SelectTrigger className="h-7 w-28">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="require">需要满足</SelectItem>
-                              <SelectItem value="deny">禁止满足</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Input
-                            value={condition.expression}
-                            onChange={(e) =>
-                              handleUpdateCondition(index, {
-                                expression: e.target.value,
-                              })
-                            }
-                            placeholder="Kether 表达式，例如: perm *admin"
-                            className="h-7 flex-1 font-mono text-xs"
-                          />
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="text-destructive h-7 w-7"
-                            onClick={() => handleDeleteCondition(index)}
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
-                        <p className="text-muted-foreground text-[10px]">
-                          {condition.type === "require"
-                            ? "玩家必须满足此条件才能执行动作"
-                            : "玩家满足此条件则禁止执行动作"}
-                        </p>
-                      </div>
-                    ))}
+              <Label className="flex items-center gap-2">
+                <Shield className="h-3.5 w-3.5" />
+                执行条件（可选）
+              </Label>
+              <div className="bg-muted/30 space-y-3 rounded-md border p-3">
+                <div className="flex items-center gap-2">
+                  <Label className="w-20 text-xs">满足条件</Label>
+                  <Input
+                    value={requireConditionExpression}
+                    onChange={(e) => handleConditionChange(e.target.value)}
+                    placeholder="填写条件，例如: perm *admin"
+                    className="h-7 flex-1 font-mono text-xs"
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Label className="w-20 text-xs">拒绝时执行</Label>
+                  <div className="flex flex-1 items-center gap-2">
+                    <Select
+                      value={denyActionType}
+                      onValueChange={(value: ActionType) =>
+                        handleDenyActionTypeChange(value)
+                      }
+                    >
+                      <SelectTrigger className="h-7 w-40">
+                        <SelectValue placeholder="动作类型" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="COMMAND">
+                          执行命令 (COMMAND)
+                        </SelectItem>
+                        <SelectItem value="OPEN_MENU">
+                          打开菜单 (OPEN_MENU)
+                        </SelectItem>
+                        <SelectItem value="CLOSE">关闭菜单 (CLOSE)</SelectItem>
+                        <SelectItem value="MESSAGE">
+                          发送消息 (MESSAGE)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      value={denyAction?.value ?? ""}
+                      onChange={(e) =>
+                        handleDenyActionValueChange(e.target.value)
+                      }
+                      placeholder={
+                        denyActionType === "COMMAND"
+                          ? "例如: tell {player} 权限不足"
+                          : denyActionType === "OPEN_MENU"
+                            ? "例如: shop"
+                            : denyActionType === "MESSAGE"
+                              ? "例如: §c条件不满足"
+                              : "无需填写"
+                      }
+                      className="h-7 flex-1 font-mono text-xs"
+                      disabled={!denyActionType || denyActionType === "CLOSE"}
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground h-7 w-7"
+                      onClick={handleClearDenyAction}
+                      disabled={!denyAction}
+                      title="清除拒绝动作"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </Button>
                   </div>
-                )}
+                </div>
+                <p className="text-muted-foreground text-[10px]">
+                  满足条件为空时视为无条件执行；拒绝动作留空则不执行
+                </p>
+              </div>
             </div>
           </div>
         </ScrollArea>

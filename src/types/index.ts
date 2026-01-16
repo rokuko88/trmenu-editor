@@ -12,8 +12,13 @@ export type ActionType = "COMMAND" | "OPEN_MENU" | "CLOSE" | "MESSAGE";
 
 // 条件类型
 export interface ActionCondition {
-  type: "require" | "deny";
+  type: "require";
   expression: string; // Kether 表达式
+}
+
+export interface DenyAction {
+  type: ActionType;
+  value: string;
 }
 
 // 菜单项（物品）
@@ -37,6 +42,7 @@ export interface MenuAction {
   value: string;
   priority?: number; // 优先级，数字越大越优先
   conditions?: ActionCondition[]; // 条件列表
+  denyAction?: DenyAction; // 条件不满足时执行的动作
 }
 
 // 菜单配置
