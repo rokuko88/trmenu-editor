@@ -17,6 +17,8 @@
   <p>TrMenu 配置文件可视化编辑器 <a href="https://rokuko88.github.io/trmenu-editor/">在线体验</a></p>
 </div>
 
+---
+
 ## 项目简介
 
 TrMenu Editor 是一个专为 Minecraft [TrMenu](https://github.com/TrMenu/TrMenu) 插件设计的可视化配置编辑器，提供直观的拖拽式界面来创建和编辑菜单配置。所有数据存储在浏览器本地，无需服务器。
