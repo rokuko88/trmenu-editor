@@ -39,6 +39,7 @@ interface PropertiesPanelProps {
   onMenuUpdate: (updates: Partial<MenuConfig>) => void;
   onItemUpdate: (itemId: string, updates: Partial<MenuItem>) => void;
   onItemDelete: (itemId: string) => void;
+  onSelectItem: (itemId: string | null) => void;
 }
 
 export function PropertiesPanel({
@@ -47,6 +48,7 @@ export function PropertiesPanel({
   onMenuUpdate,
   onItemUpdate,
   onItemDelete,
+  onSelectItem,
 }: PropertiesPanelProps) {
   const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
@@ -61,14 +63,12 @@ export function PropertiesPanel({
   const togglePanel = useEditorStore((state) => state.togglePropertiesPanel);
   const setPanelView = useEditorStore((state) => state.setPropertiesPanelView);
 
-  // 当选中物品时，自动切换到槽位视图；取消选择时返回菜单视图
+  // 当选中物品时，自动切换到槽位视图
   useEffect(() => {
     if (selectedItem) {
       setPanelView("slot");
-    } else if (panelView === "slot") {
-      setPanelView("menu");
     }
-  }, [selectedItem, panelView, setPanelView]);
+  }, [selectedItem, setPanelView]);
 
   // 处理拖拽调整宽度
   useEffect(() => {
@@ -130,7 +130,10 @@ export function PropertiesPanel({
                 ) : (
                   <BreadcrumbLink
                     className="text-sm cursor-pointer"
-                    onClick={() => setPanelView("menu")}
+                    onClick={() => {
+                      setPanelView("menu");
+                      onSelectItem(null); // 取消选中物品
+                    }}
                   >
                     菜单
                   </BreadcrumbLink>

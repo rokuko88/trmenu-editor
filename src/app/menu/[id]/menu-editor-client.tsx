@@ -502,6 +502,7 @@ export default function MenuEditorClient() {
               onMenuUpdate={handleMenuUpdate}
               onItemUpdate={handleItemUpdate}
               onItemDelete={handleItemDelete}
+              onSelectItem={setSelectedItemId}
             />
 
             {/* 插件面板 */}
