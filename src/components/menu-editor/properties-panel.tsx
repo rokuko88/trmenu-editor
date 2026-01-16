@@ -30,8 +30,10 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { ActionEditor } from "./action-editor";
+import { ColorPicker } from "./color-picker";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
+import { parseMinecraftText, hasMinecraftColors } from "@/lib/minecraft-colors";
 
 interface PropertiesPanelProps {
   menu: MenuConfig;
@@ -314,6 +316,8 @@ function ItemProperties({
   onDelete: () => void;
 }) {
   const [loreInput, setLoreInput] = useState("");
+  const displayNameInputRef = useRef<HTMLInputElement>(null);
+  const loreInputRef = useRef<HTMLInputElement>(null);
 
   const handleAddLore = () => {
     if (loreInput.trim()) {
@@ -321,6 +325,47 @@ function ItemProperties({
       onUpdate({ lore: [...currentLore, loreInput.trim()] });
       setLoreInput("");
     }
+  };
+
+  // 处理颜色代码插入到显示名称
+  const handleDisplayNameColorSelect = (colorCode: string) => {
+    const input = displayNameInputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const currentValue = item.displayName || "";
+    const newValue =
+      currentValue.slice(0, start) + colorCode + currentValue.slice(end);
+
+    onUpdate({ displayName: newValue });
+
+    // 恢复光标位置
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + colorCode.length;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
+  // 处理颜色代码插入到 Lore 输入框
+  const handleLoreColorSelect = (colorCode: string) => {
+    const input = loreInputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const newValue =
+      loreInput.slice(0, start) + colorCode + loreInput.slice(end);
+
+    setLoreInput(newValue);
+
+    // 恢复光标位置
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + colorCode.length;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
   };
 
   const handleRemoveLore = (index: number) => {
@@ -349,13 +394,26 @@ function ItemProperties({
         <Label htmlFor="item-display-name" className="text-sm ">
           显示名称
         </Label>
-        <Input
-          id="item-display-name"
-          value={item.displayName || ""}
-          onChange={(e) => onUpdate({ displayName: e.target.value })}
-          placeholder="自定义名称"
-          className="text-sm"
-        />
+        <div className="flex gap-2">
+          <Input
+            ref={displayNameInputRef}
+            id="item-display-name"
+            value={item.displayName || ""}
+            onChange={(e) => onUpdate({ displayName: e.target.value })}
+            placeholder="自定义名称"
+            className="text-sm"
+          />
+          <ColorPicker onColorSelect={handleDisplayNameColorSelect} />
+        </div>
+        {/* 颜色预览 */}
+        {item.displayName && hasMinecraftColors(item.displayName) && (
+          <div className="mt-2 p-2 rounded-md bg-muted/50 border text-sm">
+            <div className="text-xs text-muted-foreground mb-1">预览：</div>
+            <div className="font-medium">
+              {parseMinecraftText(item.displayName)}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 数量和槽位 */}
@@ -418,13 +476,20 @@ function ItemProperties({
               {item.lore.map((line, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 group text-sm bg-muted/30 rounded px-3 py-2 hover:bg-muted/50 transition-colors"
+                  className="flex items-start gap-2 group text-sm bg-muted/30 rounded px-3 py-2 hover:bg-muted/50 transition-colors"
                 >
-                  <span className="flex-1 truncate text-sm">{line}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="truncate text-xs text-muted-foreground font-mono mb-1">
+                      {line}
+                    </div>
+                    {hasMinecraftColors(line) && (
+                      <div className="text-sm">{parseMinecraftText(line)}</div>
+                    )}
+                  </div>
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
                     onClick={() => handleRemoveLore(index)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -435,6 +500,7 @@ function ItemProperties({
           )}
           <div className="flex gap-2">
             <Input
+              ref={loreInputRef}
               value={loreInput}
               onChange={(e) => setLoreInput(e.target.value)}
               onKeyDown={(e) => {
@@ -445,6 +511,7 @@ function ItemProperties({
               placeholder="输入描述行"
               className="h-9 text-sm"
             />
+            <ColorPicker onColorSelect={handleLoreColorSelect} />
             <Button
               size="icon"
               variant="outline"
@@ -454,6 +521,13 @@ function ItemProperties({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
+          {/* Lore 输入框预览 */}
+          {loreInput && hasMinecraftColors(loreInput) && (
+            <div className="p-2 rounded-md bg-muted/50 border text-sm">
+              <div className="text-xs text-muted-foreground mb-1">预览：</div>
+              <div>{parseMinecraftText(loreInput)}</div>
+            </div>
+          )}
         </div>
       </div>
 
