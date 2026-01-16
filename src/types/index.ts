@@ -42,7 +42,8 @@ export interface MenuAction {
 export interface MenuConfig {
   id: string;
   name: string;
-  title: string;
+  title: string | string[]; // 支持单个标题或多个动态标题
+  titleUpdate?: number; // 标题更新周期（ticks），仅在有多个标题时有效
   size: MenuSize;
   type: MenuType;
   items: MenuItem[];

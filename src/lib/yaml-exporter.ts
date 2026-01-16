@@ -12,9 +12,23 @@ export function exportMenuToYAML(menu: MenuConfig): string {
   lines.push(`# 最后更新: ${new Date(menu.updatedAt).toLocaleString()}`);
   lines.push("");
 
-  // Title
-  lines.push(`Title: '${escapeYAML(menu.title)}'`);
-  lines.push("");
+  // Title - 支持单标题和多标题
+  if (Array.isArray(menu.title)) {
+    lines.push(`Title:`);
+    menu.title.forEach((title) => {
+      lines.push(`  - '${escapeYAML(title)}'`);
+    });
+    lines.push("");
+
+    // Title-Update - 仅当有多个标题时有效
+    if (menu.title.length > 1 && menu.titleUpdate) {
+      lines.push(`Title-Update: ${menu.titleUpdate}`);
+      lines.push("");
+    }
+  } else {
+    lines.push(`Title: '${escapeYAML(menu.title)}'`);
+    lines.push("");
+  }
 
   // Type
   if (menu.type !== "CHEST") {

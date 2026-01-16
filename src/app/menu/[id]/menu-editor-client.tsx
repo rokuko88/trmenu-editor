@@ -167,6 +167,7 @@ export default function MenuEditorClient() {
             // 替换当前菜单
             updateMenu(menuId, {
               title: importedMenu.title,
+              titleUpdate: importedMenu.titleUpdate,
               size: importedMenu.size,
               type: importedMenu.type,
               items: importedMenu.items,
@@ -179,6 +180,7 @@ export default function MenuEditorClient() {
             updateMenu(newMenuId, {
               name: importedMenu.name,
               title: importedMenu.title,
+              titleUpdate: importedMenu.titleUpdate,
               size: importedMenu.size,
               type: importedMenu.type,
               items: importedMenu.items,

@@ -20,7 +20,22 @@ export function importMenuFromYAML(
     const data = YAML.parse(yamlContent);
 
     // 解析基本信息
-    const title = data.Title || data.title || "未命名菜单";
+    const titleData = data.Title || data.title || "未命名菜单";
+    // 支持单标题和多标题
+    let title: string | string[];
+    let titleUpdate: number | undefined;
+
+    if (Array.isArray(titleData)) {
+      // 多标题模式
+      title = titleData;
+      titleUpdate =
+        data["Title-Update"] || data["title-update"] || data.TitleUpdate;
+    } else {
+      // 单标题模式
+      title = titleData;
+      titleUpdate = undefined;
+    }
+
     const type = (data.Type || data.type || "CHEST").toUpperCase() as MenuType;
     const shape = data.Shape || data.shape || [];
 
@@ -33,8 +48,11 @@ export function importMenuFromYAML(
 
     const menu: MenuConfig = {
       id: `menu-${Date.now()}`,
-      name: menuName || extractNameFromTitle(title),
+      name:
+        menuName ||
+        extractNameFromTitle(Array.isArray(title) ? title[0] : title),
       title,
+      titleUpdate,
       size,
       type,
       items,

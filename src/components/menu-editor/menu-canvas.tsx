@@ -604,10 +604,20 @@ export function MenuCanvas({
               {/* 菜单标题栏 */}
               <div className="flex items-center justify-between px-1">
                 <div>
-                  <h2 className="text-sm font-medium">{menu.title}</h2>
+                  <h2 className="text-sm font-medium">
+                    {Array.isArray(menu.title) ? menu.title[0] : menu.title}
+                    {Array.isArray(menu.title) && menu.title.length > 1 && (
+                      <span className="text-muted-foreground ml-2 text-xs">
+                        (动态 ×{menu.title.length})
+                      </span>
+                    )}
+                  </h2>
                   <p className="text-muted-foreground text-xs">
                     {menu.type} • {menu.size} 槽位 ({rows} 行) •{" "}
                     {menu.items.length} 项
+                    {Array.isArray(menu.title) &&
+                      menu.title.length > 1 &&
+                      menu.titleUpdate && <> • {menu.titleUpdate} ticks</>}
                   </p>
                 </div>
               </div>

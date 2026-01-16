@@ -88,7 +88,8 @@ export const useMenuStore = create<MenuStore>()(
         const newMenu: MenuConfig = {
           id: `menu-${Date.now()}`,
           name: `菜单 ${state.menus.length + 1}`,
-          title: "箱子菜单",
+          title: "箱子菜单", // 默认单个标题
+          titleUpdate: undefined, // 只有多个标题时才设置
           size: 27,
           type: "CHEST",
           items: [],

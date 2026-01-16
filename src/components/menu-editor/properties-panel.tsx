@@ -12,7 +12,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
-import { Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Trash2,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  Play,
+  Pause,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -197,19 +204,315 @@ function MenuProperties({
   menu: MenuConfig;
   onUpdate: (updates: Partial<MenuConfig>) => void;
 }) {
+  const [newTitleInput, setNewTitleInput] = useState("");
+  const [currentTitleIndex, setCurrentTitleIndex] = useState(0);
+  const [isPreviewPlaying, setIsPreviewPlaying] = useState(true);
+  const titleInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const newTitleInputRef = useRef<HTMLInputElement>(null);
+  const titles = Array.isArray(menu.title) ? menu.title : [menu.title];
+  const isDynamic = Array.isArray(menu.title);
+
+  const handleAddTitle = () => {
+    if (newTitleInput.trim()) {
+      const currentTitles = Array.isArray(menu.title)
+        ? menu.title
+        : [menu.title];
+      const newTitles = [...currentTitles, newTitleInput.trim()];
+      onUpdate({
+        title: newTitles,
+        titleUpdate: menu.titleUpdate || 40, // 默认周期为 40 ticks
+      });
+      setNewTitleInput("");
+    }
+  };
+
+  const handleRemoveTitle = (index: number) => {
+    const currentTitles = Array.isArray(menu.title) ? menu.title : [menu.title];
+    const newTitles = currentTitles.filter((_, i) => i !== index);
+
+    if (newTitles.length === 1) {
+      // 如果只剩一个标题，转换为单标题模式
+      onUpdate({
+        title: newTitles[0],
+        titleUpdate: undefined,
+      });
+    } else {
+      onUpdate({ title: newTitles });
+    }
+  };
+
+  const handleUpdateTitle = (index: number, value: string) => {
+    const currentTitles = Array.isArray(menu.title) ? menu.title : [menu.title];
+    const newTitles = [...currentTitles];
+    newTitles[index] = value;
+
+    if (newTitles.length === 1) {
+      // 如果只有一个标题，保存为字符串
+      onUpdate({ title: newTitles[0] });
+    } else {
+      onUpdate({ title: newTitles });
+    }
+  };
+
+  // 处理颜色代码插入到标题输入框
+  const handleTitleColorSelect = (index: number, colorCode: string) => {
+    const input = titleInputRefs.current[index];
+    if (!input) return;
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const currentValue = titles[index] || "";
+    const newValue =
+      currentValue.slice(0, start) + colorCode + currentValue.slice(end);
+
+    handleUpdateTitle(index, newValue);
+
+    // 恢复光标位置
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + colorCode.length;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
+  // 处理颜色代码插入到新标题输入框
+  const handleNewTitleColorSelect = (colorCode: string) => {
+    const input = newTitleInputRef.current;
+    if (!input) return;
+
+    const start = input.selectionStart || 0;
+    const end = input.selectionEnd || 0;
+    const newValue =
+      newTitleInput.slice(0, start) + colorCode + newTitleInput.slice(end);
+
+    setNewTitleInput(newValue);
+
+    // 恢复光标位置
+    setTimeout(() => {
+      input.focus();
+      const newPos = start + colorCode.length;
+      input.setSelectionRange(newPos, newPos);
+    }, 0);
+  };
+
+  const handleToggleDynamic = () => {
+    if (isDynamic) {
+      // 切换到单标题模式
+      onUpdate({
+        title: titles[0] || "箱子菜单",
+        titleUpdate: undefined,
+      });
+    } else {
+      // 切换到多标题模式
+      onUpdate({
+        title: [titles[0]],
+        titleUpdate: 40,
+      });
+    }
+  };
+
+  // 动态标题预览动画 - 模拟 MC 原版的直接切换效果
+  useEffect(() => {
+    if (!isDynamic || titles.length <= 1 || !isPreviewPlaying) {
+      return;
+    }
+
+    const updatePeriod = menu.titleUpdate || 40;
+    // 将 ticks 转换为毫秒（1 tick = 50ms）
+    const intervalMs = updatePeriod * 50;
+
+    const interval = setInterval(() => {
+      setCurrentTitleIndex((prev) => {
+        // 确保索引始终在有效范围内
+        if (titles.length === 0) return 0;
+        return (prev + 1) % titles.length;
+      });
+    }, intervalMs);
+
+    return () => clearInterval(interval);
+  }, [isDynamic, titles.length, menu.titleUpdate, isPreviewPlaying]);
+
+  // 确保当前索引在有效范围内
+  const safeCurrentIndex = Math.min(
+    currentTitleIndex,
+    Math.max(0, titles.length - 1)
+  );
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="menu-title" className="text-sm">
-          标题
-        </Label>
-        <Input
-          id="menu-title"
-          value={menu.title}
-          onChange={(e) => onUpdate({ title: e.target.value })}
-          placeholder="菜单标题"
-          className="text-sm"
-        />
+        <div className="flex items-center justify-between">
+          <Label className="text-sm">标题</Label>
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-7 text-xs"
+            onClick={handleToggleDynamic}
+          >
+            {isDynamic ? "单标题模式" : "动态标题"}
+          </Button>
+        </div>
+
+        {/* 动态标题预览 */}
+        {isDynamic && titles.length > 1 && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-muted-foreground text-xs">预览</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0"
+                onClick={() => setIsPreviewPlaying(!isPreviewPlaying)}
+                title={isPreviewPlaying ? "暂停预览" : "播放预览"}
+              >
+                {isPreviewPlaying ? (
+                  <Pause className="h-3 w-3" />
+                ) : (
+                  <Play className="h-3 w-3" />
+                )}
+              </Button>
+            </div>
+            <div className="bg-muted/30 relative flex h-14 items-center justify-center overflow-hidden rounded-md border">
+              {/* 直接切换，无动画效果，模拟 MC 原版 */}
+              <div className="text-center">
+                <div className="font-medium">
+                  {titles[safeCurrentIndex] &&
+                  hasMinecraftColors(titles[safeCurrentIndex])
+                    ? parseMinecraftText(titles[safeCurrentIndex])
+                    : titles[safeCurrentIndex] || "标题"}
+                </div>
+                <div className="mt-1 flex items-center justify-center gap-1">
+                  {titles.map((_, index) => (
+                    <div
+                      key={index}
+                      className={cn(
+                        "h-1 w-1 rounded-full transition-all duration-300",
+                        index === safeCurrentIndex
+                          ? "bg-primary w-2"
+                          : "bg-muted-foreground/30"
+                      )}
+                    />
+                  ))}
+                </div>
+              </div>
+              {/* 播放/暂停状态指示 */}
+              {!isPreviewPlaying && (
+                <div className="bg-background/50 absolute inset-0 flex items-center justify-center backdrop-blur-sm">
+                  <Pause className="text-muted-foreground h-6 w-6" />
+                </div>
+              )}
+            </div>
+            <p className="text-muted-foreground text-center text-xs">
+              {safeCurrentIndex + 1} / {titles.length} • 每{" "}
+              {menu.titleUpdate || 40} ticks (
+              {((menu.titleUpdate || 40) * 0.05).toFixed(2)}秒) 切换一次
+            </p>
+          </div>
+        )}
+
+        {/* 标题列表 */}
+        <div className="space-y-2">
+          {titles.map((title, index) => (
+            <div key={index} className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  ref={(el) => {
+                    titleInputRefs.current[index] = el;
+                  }}
+                  value={title}
+                  onChange={(e) => handleUpdateTitle(index, e.target.value)}
+                  placeholder={`标题 ${index + 1}`}
+                  className="text-sm"
+                />
+                <ColorPicker
+                  onColorSelect={(code) => handleTitleColorSelect(index, code)}
+                />
+                {isDynamic && titles.length > 1 && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-9 w-9 shrink-0"
+                    onClick={() => handleRemoveTitle(index)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {/* 颜色预览 */}
+              {title && hasMinecraftColors(title) && (
+                <div className="bg-muted/50 rounded-md border p-2 text-sm">
+                  <div className="text-muted-foreground mb-1 text-xs">
+                    预览：
+                  </div>
+                  <div className="font-medium">{parseMinecraftText(title)}</div>
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* 添加新标题 */}
+          {isDynamic && (
+            <div className="space-y-2">
+              <div className="flex gap-2">
+                <Input
+                  ref={newTitleInputRef}
+                  value={newTitleInput}
+                  onChange={(e) => setNewTitleInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleAddTitle();
+                    }
+                  }}
+                  placeholder="添加新标题"
+                  className="text-sm"
+                />
+                <ColorPicker onColorSelect={handleNewTitleColorSelect} />
+                <Button
+                  size="icon"
+                  variant="outline"
+                  className="h-9 w-9 shrink-0"
+                  onClick={handleAddTitle}
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
+              {/* 新标题输入框预览 */}
+              {newTitleInput && hasMinecraftColors(newTitleInput) && (
+                <div className="bg-muted/50 rounded-md border p-2 text-sm">
+                  <div className="text-muted-foreground mb-1 text-xs">
+                    预览：
+                  </div>
+                  <div className="font-medium">
+                    {parseMinecraftText(newTitleInput)}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* 标题更新周期 */}
+        {isDynamic && titles.length > 1 && (
+          <div className="space-y-2 pt-2">
+            <Label htmlFor="title-update" className="text-sm">
+              标题更新周期 (ticks)
+            </Label>
+            <Input
+              id="title-update"
+              type="number"
+              min={1}
+              value={menu.titleUpdate || 40}
+              onChange={(e) =>
+                onUpdate({ titleUpdate: Number(e.target.value) })
+              }
+              placeholder="40"
+              className="text-sm"
+            />
+            <p className="text-muted-foreground text-xs">
+              控制标题之间切换的速度，1 tick = 0.05 秒
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="space-y-2">
