@@ -18,6 +18,7 @@ interface SidebarFooterProps {
   onToggle: () => void;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
   const router = useRouter();
 

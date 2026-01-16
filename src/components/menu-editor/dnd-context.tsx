@@ -12,7 +12,6 @@ import {
   PointerSensor,
   KeyboardSensor,
   closestCenter,
-  DragCancelEvent,
 } from "@dnd-kit/core";
 import type { MenuItem } from "@/types";
 import { MenuItemDisplay } from "./menu-item";
@@ -99,7 +98,7 @@ export function DndMenuProvider({
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
+    const { over } = event;
 
     if (!over || dragStartSlot === null) {
       resetDragState();
@@ -156,7 +155,7 @@ export function DndMenuProvider({
     resetDragState();
   };
 
-  const handleDragCancel = (event: DragCancelEvent) => {
+  const handleDragCancel = () => {
     resetDragState();
   };
 

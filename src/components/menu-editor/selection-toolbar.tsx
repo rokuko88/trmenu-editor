@@ -6,7 +6,6 @@ import {
   Copy,
   Scissors,
   Trash2,
-  Move,
   X,
   ArrowUp,
   ArrowDown,

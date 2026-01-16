@@ -87,6 +87,7 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 删除菜单
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       deleteMenu: (menuId: string, skipConfirm = false) => {
         const state = get();
         set({
@@ -222,6 +223,7 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 删除菜单组
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       deleteGroup: (groupId: string, skipConfirm = false) => {
         const state = get();
         const groupMenus = state.menus.filter((m) => m.groupId === groupId);
@@ -361,6 +363,7 @@ export const useMenuStore = create<MenuStore>()(
       },
 
       // 清空所有菜单
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       clearAllMenus: (skipConfirm = false) => {
         set({
           menus: [],
