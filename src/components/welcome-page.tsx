@@ -16,48 +16,95 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { getAssetPath } from "@/lib/config";
+import { getAssetPath, navigateToMenu } from "@/lib/config";
 import { toast } from "sonner";
+import { useMenuStore } from "@/store/menu-store";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useEffect } from "react";
 
 interface WelcomePageProps {
   onCreateBlank: () => void;
   onImportMenu: () => void;
 }
 
+// 辅助函数：格式化相对时间
+function formatRelativeTime(dateString: string, currentTime: number): string {
+  const openedTime = new Date(dateString).getTime();
+  const diffMs = currentTime - openedTime;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) {
+    return "刚刚";
+  } else if (diffMins < 60) {
+    return `${diffMins} 分钟前`;
+  } else if (diffHours < 24) {
+    return `${diffHours} 小时前`;
+  } else if (diffDays === 1) {
+    return "昨天";
+  } else if (diffDays < 7) {
+    return `${diffDays} 天前`;
+  } else {
+    return new Date(dateString).toLocaleDateString("zh-CN");
+  }
+}
+
 export default function WelcomePage({
   onCreateBlank,
   onImportMenu,
 }: WelcomePageProps) {
-  // 模拟最近打开的菜单数据（后续可以从 localStorage 或数据库获取）
-  const recentMenus: Array<{
-    id: string;
-    name: string;
-    path: string;
-    lastOpened: string;
-    itemCount: number;
-  }> = [
-    {
-      id: "1",
-      name: "主菜单",
-      path: "D:\\menus\\main-menu.yml",
-      lastOpened: "2 小时前",
-      itemCount: 12,
-    },
-    {
-      id: "2",
-      name: "商店菜单",
-      path: "D:\\menus\\shop-menu.yml",
-      lastOpened: "昨天",
-      itemCount: 8,
-    },
-    {
-      id: "3",
-      name: "传送菜单",
-      path: "D:\\menus\\teleport.yml",
-      lastOpened: "3 天前",
-      itemCount: 15,
-    },
-  ];
+  const router = useRouter();
+  const [currentTime, setCurrentTime] = useState(() => Date.now());
+
+  // 从 store 获取数据
+  const menus = useMenuStore((state) => state.menus);
+  const menuGroups = useMenuStore((state) => state.menuGroups);
+  const recentItems = useMenuStore((state) => state.recentItems);
+  const clearRecent = useMenuStore((state) => state.clearRecent);
+
+  // 每分钟更新一次当前时间，保持相对时间显示准确
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Date.now());
+    }, 60000); // 每分钟更新一次
+
+    return () => clearInterval(interval);
+  }, []);
+
+  // 处理最近打开的菜单数据
+  const recentMenus = useMemo(() => {
+    return recentItems
+      .map((recent) => {
+        const menu = menus.find((m) => m.id === recent.menuId);
+        if (!menu) return null;
+
+        const group = menu.groupId
+          ? menuGroups.find((g) => g.id === menu.groupId)
+          : null;
+
+        return {
+          id: menu.id,
+          name: menu.name,
+          itemCount: menu.items.length,
+          lastOpened: formatRelativeTime(recent.openedAt, currentTime),
+          groupId: menu.groupId,
+          groupName: group?.name,
+        };
+      })
+      .filter((item) => item !== null);
+  }, [recentItems, menus, menuGroups, currentTime]);
+
+  // 处理打开最近菜单
+  const handleOpenRecentMenu = (menuId: string) => {
+    router.push(navigateToMenu(menuId));
+  };
+
+  // 处理清除历史记录
+  const handleClearRecent = () => {
+    clearRecent();
+    toast.success("已清除历史记录");
+  };
 
   const quickActions = [
     {
@@ -96,26 +143,52 @@ export default function WelcomePage({
       <div className="flex-1 overflow-auto">
         <div className="max-w-4xl mx-auto p-12 space-y-10">
           {/* Logo 和标语 */}
-          <div className="flex items-center gap-6">
-            <div className="relative w-24 h-24 shrink-0">
-              <Image
-                src={getAssetPath("/image.png")}
-                alt="TrMenu Editor Logo"
-                width={96}
-                height={96}
-                className="rounded-xl"
-                priority
-                unoptimized
-              />
+          <div className="space-y-4">
+            <div className="flex items-center gap-6">
+              <div className="relative w-24 h-24 shrink-0">
+                <Image
+                  src={getAssetPath("/image.png")}
+                  alt="TrMenu Editor Logo"
+                  width={96}
+                  height={96}
+                  className="rounded-xl"
+                  priority
+                  unoptimized
+                />
+              </div>
+              <div>
+                <h1 className="text-2xl font-semibold mb-1">
+                  欢迎使用 TrMenu Editor
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  可视化菜单配置编辑器，让菜单设计变得简单高效
+                </p>
+              </div>
             </div>
-            <div>
-              <h1 className="text-2xl font-semibold mb-1">
-                欢迎使用 TrMenu Editor
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                可视化菜单配置编辑器，让菜单设计变得简单高效
-              </p>
-            </div>
+
+            {/* 统计信息 */}
+            {menus.length > 0 && (
+              <div className="grid grid-cols-3 gap-3">
+                <div className="p-3 bg-card border rounded-lg">
+                  <div className="text-2xl font-semibold mb-0.5">
+                    {menus.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">个菜单</div>
+                </div>
+                <div className="p-3 bg-card border rounded-lg">
+                  <div className="text-2xl font-semibold mb-0.5">
+                    {menuGroups.length}
+                  </div>
+                  <div className="text-xs text-muted-foreground">个分组</div>
+                </div>
+                <div className="p-3 bg-card border rounded-lg">
+                  <div className="text-2xl font-semibold mb-0.5">
+                    {menus.reduce((sum, m) => sum + m.items.length, 0)}
+                  </div>
+                  <div className="text-xs text-muted-foreground">个物品</div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 快速操作网格 */}
@@ -153,9 +226,13 @@ export default function WelcomePage({
                 最近打开
               </h2>
               {recentMenus.length > 0 && (
-                <button className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1">
+                <button
+                  onClick={handleClearRecent}
+                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  title="清除历史记录"
+                >
                   <History className="w-3 h-3" />
-                  查看更多
+                  清除记录
                 </button>
               )}
             </div>
@@ -187,6 +264,7 @@ export default function WelcomePage({
                 {recentMenus.map((menu) => (
                   <button
                     key={menu.id}
+                    onClick={() => handleOpenRecentMenu(menu.id)}
                     className="w-full flex items-center justify-between px-4 py-3 text-left bg-card border hover:bg-accent hover:border-accent-foreground/20 rounded-lg transition-all group"
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
@@ -194,12 +272,18 @@ export default function WelcomePage({
                         <FileText className="w-4 h-4 text-primary" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="text-sm font-medium mb-0.5">
-                          {menu.name}
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="text-sm font-medium">
+                            {menu.name}
+                          </span>
+                          {menu.groupName && (
+                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-muted rounded">
+                              <Folder className="w-3 h-3" />
+                              {menu.groupName}
+                            </span>
+                          )}
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-3">
-                          <span className="truncate">{menu.path}</span>
-                          <span className="shrink-0">·</span>
+                        <div className="text-xs text-muted-foreground flex items-center gap-2">
                           <span className="shrink-0">{menu.itemCount} 项</span>
                           <span className="shrink-0">·</span>
                           <span className="shrink-0">{menu.lastOpened}</span>
