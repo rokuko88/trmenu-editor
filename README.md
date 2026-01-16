@@ -57,24 +57,6 @@ pnpm run build
 pnpm run start
 ```
 
-### 开发命令
-
-```bash
-# 代码检查
-pnpm run lint          # ESLint 检查
-pnpm run lint:fix      # 自动修复 ESLint 问题
-
-# 代码格式化
-pnpm run format        # Prettier 格式化
-pnpm run format:check  # 检查代码格式
-
-# 类型检查
-pnpm run type-check    # TypeScript 类型检查
-
-# 全面检查
-pnpm run check-all     # 运行所有检查
-```
-
 ### 提交规范
 
 详细的开发指南请查看 [CONTRIBUTING.md](CONTRIBUTING.md)。
