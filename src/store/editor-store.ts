@@ -5,6 +5,7 @@ interface EditorUIState {
   // 属性面板状态
   propertiesPanelWidth: number;
   propertiesPanelCollapsed: boolean;
+  propertiesPanelView: "menu" | "slot"; // 面板视图：菜单层 或 槽位层
 
   // 插件面板状态
   pluginPanelWidth: number;
@@ -15,6 +16,7 @@ interface EditorUIState {
   setPropertiesPanelWidth: (width: number) => void;
   setPropertiesPanelCollapsed: (collapsed: boolean) => void;
   togglePropertiesPanel: () => void;
+  setPropertiesPanelView: (view: "menu" | "slot") => void;
 
   setPluginPanelWidth: (width: number) => void;
   setPluginPanelExpanded: (expanded: boolean) => void;
@@ -28,6 +30,7 @@ export const useEditorStore = create<EditorUIState>()(
       // 默认状态
       propertiesPanelWidth: 320,
       propertiesPanelCollapsed: false,
+      propertiesPanelView: "menu",
 
       pluginPanelWidth: 320,
       pluginPanelExpanded: false,
@@ -43,6 +46,8 @@ export const useEditorStore = create<EditorUIState>()(
         set((state) => ({
           propertiesPanelCollapsed: !state.propertiesPanelCollapsed,
         })),
+
+      setPropertiesPanelView: (view) => set({ propertiesPanelView: view }),
 
       // 插件面板操作
       setPluginPanelWidth: (width) => set({ pluginPanelWidth: width }),

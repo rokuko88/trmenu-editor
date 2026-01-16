@@ -14,11 +14,6 @@ import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Trash2, Plus, ChevronLeft, ChevronRight } from "lucide-react";
 import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -26,6 +21,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { ActionEditor } from "./action-editor";
 import { cn } from "@/lib/utils";
 import { useEditorStore } from "@/store/editor-store";
@@ -45,18 +48,27 @@ export function PropertiesPanel({
   onItemUpdate,
   onItemDelete,
 }: PropertiesPanelProps) {
-  const [menuPropsOpen, setMenuPropsOpen] = useState(true);
-  const [itemPropsOpen, setItemPropsOpen] = useState(true);
   const [isResizing, setIsResizing] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // 从 store 获取状态
   const panelWidth = useEditorStore((state) => state.propertiesPanelWidth);
   const isCollapsed = useEditorStore((state) => state.propertiesPanelCollapsed);
+  const panelView = useEditorStore((state) => state.propertiesPanelView);
   const setPanelWidth = useEditorStore(
     (state) => state.setPropertiesPanelWidth
   );
   const togglePanel = useEditorStore((state) => state.togglePropertiesPanel);
+  const setPanelView = useEditorStore((state) => state.setPropertiesPanelView);
+
+  // 当选中物品时，自动切换到槽位视图；取消选择时返回菜单视图
+  useEffect(() => {
+    if (selectedItem) {
+      setPanelView("slot");
+    } else if (panelView === "slot") {
+      setPanelView("menu");
+    }
+  }, [selectedItem, panelView, setPanelView]);
 
   // 处理拖拽调整宽度
   useEffect(() => {
@@ -108,138 +120,43 @@ export function PropertiesPanel({
           </div>
         )}
 
+        {/* 面包屑导航 */}
+        <div className="border-b px-4 py-3">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                {panelView === "menu" ? (
+                  <BreadcrumbPage className="text-sm">菜单</BreadcrumbPage>
+                ) : (
+                  <BreadcrumbLink
+                    className="text-sm cursor-pointer"
+                    onClick={() => setPanelView("menu")}
+                  >
+                    菜单
+                  </BreadcrumbLink>
+                )}
+              </BreadcrumbItem>
+              {panelView === "slot" && selectedItem && (
+                <>
+                  <BreadcrumbSeparator />
+                  <BreadcrumbItem>
+                    <BreadcrumbPage className="text-sm">
+                      #{selectedItem.slot}
+                    </BreadcrumbPage>
+                  </BreadcrumbItem>
+                </>
+              )}
+            </BreadcrumbList>
+          </Breadcrumb>
+        </div>
+
         <ScrollArea className="flex-1">
-          <div className="p-2 space-y-2">
-            {/* 菜单属性 */}
-            <Collapsible open={menuPropsOpen} onOpenChange={setMenuPropsOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
-                <span className="text-xs  text-muted-foreground uppercase tracking-wider">
-                  菜单配置
-                </span>
-                <ChevronRight
-                  className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
-                    menuPropsOpen ? "rotate-90" : ""
-                  }`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3 space-y-3">
-                <div className="space-y-1">
-                  <Label htmlFor="menu-title" className="text-sm ">
-                    标题
-                  </Label>
-                  <Input
-                    id="menu-title"
-                    value={menu.title}
-                    onChange={(e) => onMenuUpdate({ title: e.target.value })}
-                    placeholder="菜单标题"
-                    className="text-sm"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="menu-size" className="text-sm ">
-                    大小
-                  </Label>
-                  <Select
-                    value={menu.size.toString()}
-                    onValueChange={(value: string) =>
-                      onMenuUpdate({ size: Number(value) as MenuSize })
-                    }
-                  >
-                    <SelectTrigger id="menu-size" className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="9" className="text-sm">
-                        9 格 (1 行)
-                      </SelectItem>
-                      <SelectItem value="18" className="text-sm">
-                        18 格 (2 行)
-                      </SelectItem>
-                      <SelectItem value="27" className="text-sm">
-                        27 格 (3 行)
-                      </SelectItem>
-                      <SelectItem value="36" className="text-sm">
-                        36 格 (4 行)
-                      </SelectItem>
-                      <SelectItem value="45" className="text-sm">
-                        45 格 (5 行)
-                      </SelectItem>
-                      <SelectItem value="54" className="text-sm">
-                        54 格 (6 行)
-                      </SelectItem>
-                      <SelectItem value="63" className="text-sm">
-                        63 格 (7 行)
-                      </SelectItem>
-                      <SelectItem value="72" className="text-sm">
-                        72 格 (8 行)
-                      </SelectItem>
-                      <SelectItem value="81" className="text-sm">
-                        81 格 (9 行)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-1">
-                  <Label htmlFor="menu-type" className="text-sm ">
-                    类型
-                  </Label>
-                  <Select
-                    value={menu.type}
-                    onValueChange={(value: string) =>
-                      onMenuUpdate({ type: value as MenuType })
-                    }
-                  >
-                    <SelectTrigger id="menu-type" className="text-sm">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CHEST" className="text-sm">
-                        箱子 (CHEST)
-                      </SelectItem>
-                      <SelectItem value="HOPPER" className="text-sm">
-                        漏斗 (HOPPER)
-                      </SelectItem>
-                      <SelectItem value="DISPENSER" className="text-sm">
-                        发射器 (DISPENSER)
-                      </SelectItem>
-                      <SelectItem value="DROPPER" className="text-sm">
-                        投掷器 (DROPPER)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="pt-2 grid grid-cols-2 gap-2 text-xs">
-                  <div className="text-muted-foreground">
-                    <span className="font-medium">{menu.items.length}</span> 项
-                  </div>
-                  <div className="text-muted-foreground text-right">
-                    <span className="font-medium">
-                      {menu.size - menu.items.length}
-                    </span>{" "}
-                    空位
-                  </div>
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
-
-            <Separator />
-
-            {/* 物品属性 */}
-            <Collapsible open={itemPropsOpen} onOpenChange={setItemPropsOpen}>
-              <CollapsibleTrigger className="flex items-center justify-between w-full py-2 hover:opacity-70 transition-opacity">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  {selectedItem ? "物品配置" : "未选中"}
-                </span>
-                <ChevronRight
-                  className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${
-                    itemPropsOpen ? "rotate-90" : ""
-                  }`}
-                />
-              </CollapsibleTrigger>
-              <CollapsibleContent className="mt-3">
+          <div className="p-4 space-y-4">
+            {/* 根据视图显示不同内容 */}
+            {panelView === "menu" ? (
+              <MenuProperties menu={menu} onUpdate={onMenuUpdate} />
+            ) : (
+              <>
                 {selectedItem ? (
                   <ItemProperties
                     item={selectedItem}
@@ -249,12 +166,12 @@ export function PropertiesPanel({
                     onDelete={() => onItemDelete(selectedItem.id)}
                   />
                 ) : (
-                  <div className="text-center py-12 text-xs text-muted-foreground">
-                    选择一个物品以编辑
+                  <div className="text-center py-12 text-sm text-muted-foreground">
+                    请先选择一个槽位
                   </div>
                 )}
-              </CollapsibleContent>
-            </Collapsible>
+              </>
+            )}
           </div>
         </ScrollArea>
       </div>
@@ -273,6 +190,122 @@ export function PropertiesPanel({
           <ChevronRight className="h-4 w-4" />
         )}
       </Button>
+    </div>
+  );
+}
+
+// 菜单属性编辑组件
+function MenuProperties({
+  menu,
+  onUpdate,
+}: {
+  menu: MenuConfig;
+  onUpdate: (updates: Partial<MenuConfig>) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label htmlFor="menu-title" className="text-sm">
+          标题
+        </Label>
+        <Input
+          id="menu-title"
+          value={menu.title}
+          onChange={(e) => onUpdate({ title: e.target.value })}
+          placeholder="菜单标题"
+          className="text-sm"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="menu-size" className="text-sm">
+          大小
+        </Label>
+        <Select
+          value={menu.size.toString()}
+          onValueChange={(value: string) =>
+            onUpdate({ size: Number(value) as MenuSize })
+          }
+        >
+          <SelectTrigger id="menu-size" className="text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="9" className="text-sm">
+              9 格 (1 行)
+            </SelectItem>
+            <SelectItem value="18" className="text-sm">
+              18 格 (2 行)
+            </SelectItem>
+            <SelectItem value="27" className="text-sm">
+              27 格 (3 行)
+            </SelectItem>
+            <SelectItem value="36" className="text-sm">
+              36 格 (4 行)
+            </SelectItem>
+            <SelectItem value="45" className="text-sm">
+              45 格 (5 行)
+            </SelectItem>
+            <SelectItem value="54" className="text-sm">
+              54 格 (6 行)
+            </SelectItem>
+            <SelectItem value="63" className="text-sm">
+              63 格 (7 行)
+            </SelectItem>
+            <SelectItem value="72" className="text-sm">
+              72 格 (8 行)
+            </SelectItem>
+            <SelectItem value="81" className="text-sm">
+              81 格 (9 行)
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="menu-type" className="text-sm">
+          类型
+        </Label>
+        <Select
+          value={menu.type}
+          onValueChange={(value: string) =>
+            onUpdate({ type: value as MenuType })
+          }
+        >
+          <SelectTrigger id="menu-type" className="text-sm">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="CHEST" className="text-sm">
+              箱子 (CHEST)
+            </SelectItem>
+            <SelectItem value="HOPPER" className="text-sm">
+              漏斗 (HOPPER)
+            </SelectItem>
+            <SelectItem value="DISPENSER" className="text-sm">
+              发射器 (DISPENSER)
+            </SelectItem>
+            <SelectItem value="DROPPER" className="text-sm">
+              投掷器 (DROPPER)
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Separator />
+
+      <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="space-y-1">
+          <div className="text-muted-foreground">已使用</div>
+          <div className="text-2xl font-semibold">{menu.items.length}</div>
+        </div>
+        <div className="space-y-1">
+          <div className="text-muted-foreground">空位</div>
+          <div className="text-2xl font-semibold">
+            {menu.size - menu.items.length}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

@@ -81,6 +81,33 @@ export function MenuCanvas({
     updateSelectedSlots,
   } = useSelection();
 
+  // 处理画布点击，用于取消选中
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const target = e.target as HTMLElement;
+
+      // 检查是否点击在菜单容器外（空白区域）
+      // 只有点击画布背景本身时才取消选中
+      const isCanvasBackground = target === e.currentTarget;
+      const isInsideInventoryContainer = containerRef.current?.contains(target);
+
+      // 如果点击在画布空白区域（不在物品栏容器内）
+      if (
+        isCanvasBackground ||
+        (!isInsideInventoryContainer && !target.closest("[data-slot]"))
+      ) {
+        // 取消单个物品选中
+        onSelectItem(null);
+        // 取消选区
+        clearSelection();
+      }
+
+      // 调用框选的 mouseDown 处理
+      handleMouseDown(e);
+    },
+    [handleMouseDown, onSelectItem, clearSelection, containerRef]
+  );
+
   // 计算行数和列数（提前计算，供后续使用）
   const rows = menu.size / 9;
   const cols = 9;
@@ -205,6 +232,13 @@ export function MenuCanvas({
         }
       }
 
+      // Escape - 取消单个物品选中
+      if (e.key === "Escape" && selectedItemId) {
+        e.preventDefault();
+        onSelectItem(null);
+        return;
+      }
+
       // 单个物品操作
       if (selectedItemId && selectedSlots.size === 0) {
         // Ctrl/Cmd + C - 复制
@@ -246,6 +280,7 @@ export function MenuCanvas({
     onItemCopy,
     onItemPaste,
     onItemDelete,
+    onSelectItem,
     handleBatchCopy,
     handleBatchCut,
     handleBatchDelete,
@@ -329,6 +364,9 @@ export function MenuCanvas({
             isInSelection={isInSelection}
             slotBorders={slotBorders}
             onSelect={(e?: React.MouseEvent) => {
+              // 阻止事件冒泡，避免触发画布的取消选中逻辑
+              e?.stopPropagation();
+
               if (e && (e.ctrlKey || e.metaKey)) {
                 // Ctrl+点击：添加或移除槽位
                 // 如果当前有单独选中的物品，先将其槽位添加到选区
@@ -472,7 +510,7 @@ export function MenuCanvas({
         ) : (
           <div
             className="flex-1 flex flex-col items-center justify-center p-8 select-none relative"
-            onMouseDown={handleMouseDown}
+            onMouseDown={handleCanvasMouseDown}
             style={{
               ...(showGrid && {
                 backgroundImage:
