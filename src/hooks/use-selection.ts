@@ -11,9 +11,13 @@ interface SelectionRect {
 
 interface UseSelectionOptions {
   onSelectionChange?: (selectedSlots: number[]) => void;
+  scale?: number;
 }
 
-export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
+export function useSelection({
+  onSelectionChange,
+  scale = 1,
+}: UseSelectionOptions = {}) {
   const [selectedSlots, setSelectedSlots] = useState<Set<number>>(new Set());
   const [isSelecting, setIsSelecting] = useState(false);
   const [selectionRect, setSelectionRect] = useState<SelectionRect | null>(
@@ -22,39 +26,43 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const startPosRef = useRef<{ x: number; y: number } | null>(null);
   const isDraggingRef = useRef(false);
+  const effectiveScale = Math.max(0.01, scale);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
-    // 只在按下鼠标左键时开始
-    if (e.button !== 0) return;
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      // 只在按下鼠标左键时开始
+      if (e.button !== 0) return;
 
-    // 检查点击的目标元素
-    const target = e.target as HTMLElement;
+      // 检查点击的目标元素
+      const target = e.target as HTMLElement;
 
-    // 如果点击的是可拖动的槽位（带有 cursor-move 类），不启动框选
-    const slotElement = target.closest("[data-slot]") as HTMLElement;
-    if (slotElement && slotElement.classList.contains("cursor-move")) {
-      // 这是有物品的槽位，不启动框选，让拖动逻辑处理
-      return;
-    }
+      // 如果点击的是可拖动的槽位（带有 cursor-move 类），不启动框选
+      const slotElement = target.closest("[data-slot]") as HTMLElement;
+      if (slotElement && slotElement.classList.contains("cursor-move")) {
+        // 这是有物品的槽位，不启动框选，让拖动逻辑处理
+        return;
+      }
 
-    const container = containerRef.current;
-    if (!container) return;
+      const container = containerRef.current;
+      if (!container) return;
 
-    const rect = container.getBoundingClientRect();
-    const startX = e.clientX - rect.left;
-    const startY = e.clientY - rect.top;
+      const rect = container.getBoundingClientRect();
+      const startX = (e.clientX - rect.left) / effectiveScale;
+      const startY = (e.clientY - rect.top) / effectiveScale;
 
-    startPosRef.current = { x: startX, y: startY };
-    isDraggingRef.current = false;
+      startPosRef.current = { x: startX, y: startY };
+      isDraggingRef.current = false;
 
-    // 暂时不设置 isSelecting，等到真正开始拖拽时再设置
-    setSelectionRect({
-      startX,
-      startY,
-      endX: startX,
-      endY: startY,
-    });
-  }, []);
+      // 暂时不设置 isSelecting，等到真正开始拖拽时再设置
+      setSelectionRect({
+        startX,
+        startY,
+        endX: startX,
+        endY: startY,
+      });
+    },
+    [effectiveScale]
+  );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
@@ -64,13 +72,13 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
       if (!container) return;
 
       const rect = container.getBoundingClientRect();
-      const currentX = e.clientX - rect.left;
-      const currentY = e.clientY - rect.top;
+      const currentX = (e.clientX - rect.left) / effectiveScale;
+      const currentY = (e.clientY - rect.top) / effectiveScale;
 
       // 计算移动距离，如果超过阈值（3px）则认为是拖拽
       const deltaX = Math.abs(currentX - startPosRef.current.x);
       const deltaY = Math.abs(currentY - startPosRef.current.y);
-      const dragThreshold = 3;
+      const dragThreshold = 3 / effectiveScale;
 
       if (
         !isDraggingRef.current &&
@@ -105,10 +113,10 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
           const slotRect = slotElement.getBoundingClientRect();
           const containerRect = container.getBoundingClientRect();
 
-          const slotX = slotRect.left - containerRect.left;
-          const slotY = slotRect.top - containerRect.top;
-          const slotWidth = slotRect.width;
-          const slotHeight = slotRect.height;
+          const slotX = (slotRect.left - containerRect.left) / effectiveScale;
+          const slotY = (slotRect.top - containerRect.top) / effectiveScale;
+          const slotWidth = slotRect.width / effectiveScale;
+          const slotHeight = slotRect.height / effectiveScale;
 
           // 检查槽位是否与选择区域相交
           if (
@@ -128,7 +136,7 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
         onSelectionChange?.(Array.from(newSelectedSlots));
       }
     },
-    [onSelectionChange]
+    [onSelectionChange, effectiveScale]
   );
 
   const handleMouseUp = useCallback(() => {

@@ -38,6 +38,10 @@ import { cn } from "@/lib/utils";
 
 type ViewMode = "visual" | "code";
 
+const MIN_CANVAS_ZOOM = 0.5;
+const MAX_CANVAS_ZOOM = 2;
+const CANVAS_ZOOM_STEP = 0.1;
+
 interface MenuCanvasProps {
   menu: MenuConfig;
   selectedItemId: string | null;
@@ -77,8 +81,32 @@ export function MenuCanvas({
   const [showGrid, setShowGrid] = useState(false);
   const [isResizingMenu, setIsResizingMenu] = useState(false);
   const [previewRows, setPreviewRows] = useState<number | null>(null);
+  const [canvasScale, setCanvasScale] = useState(1);
   const resizeStartRef = useRef<{ y: number; initialRows: number } | null>(
     null
+  );
+
+  const clampZoom = useCallback((value: number) => {
+    const clamped = Math.min(MAX_CANVAS_ZOOM, Math.max(MIN_CANVAS_ZOOM, value));
+    return Number(clamped.toFixed(2));
+  }, []);
+
+  const handleZoomIn = useCallback(() => {
+    setCanvasScale((prev) => clampZoom(prev + CANVAS_ZOOM_STEP));
+  }, [clampZoom]);
+
+  const handleZoomOut = useCallback(() => {
+    setCanvasScale((prev) => clampZoom(prev - CANVAS_ZOOM_STEP));
+  }, [clampZoom]);
+
+  const handleCanvasWheel = useCallback(
+    (e: React.WheelEvent<HTMLDivElement>) => {
+      if (viewMode !== "visual") return;
+      e.preventDefault();
+      const direction = e.deltaY < 0 ? 1 : -1;
+      setCanvasScale((prev) => clampZoom(prev + direction * CANVAS_ZOOM_STEP));
+    },
+    [viewMode, clampZoom]
   );
 
   // 获取当前页码
@@ -104,7 +132,7 @@ export function MenuCanvas({
     clearSelection,
     toggleSlot,
     updateSelectedSlots,
-  } = useSelection();
+  } = useSelection({ scale: canvasScale });
 
   // 处理画布点击，用于取消选中
   const handleCanvasMouseDown = useCallback(
@@ -506,6 +534,8 @@ export function MenuCanvas({
 
   // 检查是否可以调整尺寸（仅 CHEST 类型支持）
   const canResize = menu.type === "CHEST";
+  const zoomOutDisabled = canvasScale <= MIN_CANVAS_ZOOM;
+  const zoomInDisabled = canvasScale >= MAX_CANVAS_ZOOM;
 
   // 开始拖拽调整尺寸
   const handleResizeMouseDown = useCallback(
@@ -530,7 +560,7 @@ export function MenuCanvas({
 
       const deltaY = e.clientY - resizeStartRef.current.y;
       // 每50px约等于一行的高度，使拖拽更灵敏
-      const rowHeight = 50;
+      const rowHeight = 50 * canvasScale;
       const deltaRows = Math.round(deltaY / rowHeight);
       const targetRows = Math.max(
         1,
@@ -577,7 +607,15 @@ export function MenuCanvas({
       window.removeEventListener("mousemove", handleMouseMove);
       window.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [isResizingMenu, previewRows, rows, onMenuUpdate, menu.items, confirm]);
+  }, [
+    isResizingMenu,
+    previewRows,
+    rows,
+    onMenuUpdate,
+    menu.items,
+    confirm,
+    canvasScale,
+  ]);
 
   return (
     <DndMenuProvider
@@ -600,6 +638,10 @@ export function MenuCanvas({
           onTogglePlayerInventory={() =>
             setShowPlayerInventory(!showPlayerInventory)
           }
+          onZoomIn={handleZoomIn}
+          onZoomOut={handleZoomOut}
+          zoomInDisabled={zoomInDisabled}
+          zoomOutDisabled={zoomOutDisabled}
           menuId={menu.id}
         />
 
@@ -612,6 +654,7 @@ export function MenuCanvas({
           <div
             className="relative flex flex-1 flex-col items-center justify-center p-8 select-none"
             onMouseDown={handleCanvasMouseDown}
+            onWheel={handleCanvasWheel}
             style={{
               ...(showGrid && {
                 backgroundImage:
@@ -621,7 +664,13 @@ export function MenuCanvas({
               }),
             }}
           >
-            <div className="pointer-events-none relative z-10 w-full max-w-xl space-y-4">
+            <div
+              className="pointer-events-none relative z-10 w-full max-w-xl space-y-4 transition-transform"
+              style={{
+                transform: `scale(${canvasScale})`,
+                transformOrigin: "top center",
+              }}
+            >
               {/* 菜单标题栏 */}
               <div className="flex items-center justify-between px-1">
                 <div className="flex-1">

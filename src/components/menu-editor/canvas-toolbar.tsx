@@ -25,6 +25,10 @@ interface CanvasToolbarProps {
   onToggleGrid?: () => void;
   showPlayerInventory?: boolean;
   onTogglePlayerInventory?: () => void;
+  onZoomIn?: () => void;
+  onZoomOut?: () => void;
+  zoomInDisabled?: boolean;
+  zoomOutDisabled?: boolean;
   menuId?: string; // 当前菜单 ID，用于变量管理
 }
 
@@ -35,6 +39,10 @@ export function CanvasToolbar({
   onToggleGrid,
   showPlayerInventory = false,
   onTogglePlayerInventory,
+  onZoomIn,
+  onZoomOut,
+  zoomInDisabled = false,
+  zoomOutDisabled = false,
   menuId,
 }: CanvasToolbarProps) {
   const [variablesOpen, setVariablesOpen] = useState(false);
@@ -134,7 +142,8 @@ export function CanvasToolbar({
                 size="sm"
                 className="h-8 w-8 p-0"
                 title="缩小"
-                disabled
+                onClick={onZoomOut}
+                disabled={!onZoomOut || zoomOutDisabled}
               >
                 <ZoomOut className="h-4 w-4" />
               </Button>
@@ -143,7 +152,8 @@ export function CanvasToolbar({
                 size="sm"
                 className="h-8 w-8 p-0"
                 title="放大"
-                disabled
+                onClick={onZoomIn}
+                disabled={!onZoomIn || zoomInDisabled}
               >
                 <ZoomIn className="h-4 w-4" />
               </Button>
