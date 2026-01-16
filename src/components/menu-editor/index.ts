@@ -10,3 +10,4 @@ export { SelectionToolbar } from "./selection-toolbar";
 export { SelectionBox } from "./selection-box";
 export { DndMenuProvider, useDndMenu } from "./dnd-context";
 export { DraggableSlot } from "./draggable-slot";
+export { VariablesManager } from "./variables-manager";

@@ -50,6 +50,7 @@ export interface MenuConfig {
   updatedAt: string;
   groupId?: string; // 所属菜单组ID（可选）
   order: number; // 排序顺序
+  variables?: Variable[]; // 菜单级别的变量
 }
 
 // 菜单组
@@ -59,4 +60,14 @@ export interface MenuGroup {
   createdAt: string;
   updatedAt: string;
   order: number; // 排序顺序
+}
+
+// 变量定义
+export interface Variable {
+  id: string;
+  key: string; // 变量键名，如 ${SERVER_NAME}
+  value: string; // 变量值
+  description?: string; // 变量描述
+  createdAt: string;
+  updatedAt: string;
 }

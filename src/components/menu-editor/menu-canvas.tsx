@@ -579,6 +579,7 @@ export function MenuCanvas({
           onTogglePlayerInventory={() =>
             setShowPlayerInventory(!showPlayerInventory)
           }
+          menuId={menu.id}
         />
 
         {/* 画布区域 */}

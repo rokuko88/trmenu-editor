@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { MenuConfig, MenuGroup, MenuItem } from "@/types";
+import type { MenuConfig, MenuGroup, MenuItem, Variable } from "@/types";
 
 interface RecentItem {
   menuId: string;
@@ -54,6 +54,22 @@ interface MenuStore {
   // 批量操作
   importMenus: (menus: MenuConfig[]) => void;
   clearAllMenus: () => void;
+
+  // 菜单变量操作
+  createMenuVariable: (
+    menuId: string,
+    key: string,
+    value: string,
+    description?: string
+  ) => void;
+  updateMenuVariable: (
+    menuId: string,
+    variableId: string,
+    updates: Partial<Omit<Variable, "id" | "createdAt">>
+  ) => void;
+  deleteMenuVariable: (menuId: string, variableId: string) => void;
+  getMenuVariable: (menuId: string, variableId: string) => Variable | undefined;
+  findMenuVariableByKey: (menuId: string, key: string) => Variable | undefined;
 }
 
 export const useMenuStore = create<MenuStore>()(
@@ -76,6 +92,7 @@ export const useMenuStore = create<MenuStore>()(
           size: 27,
           type: "CHEST",
           items: [],
+          variables: [], // 初始化空变量列表
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
           groupId,
@@ -443,6 +460,116 @@ export const useMenuStore = create<MenuStore>()(
               : menu
           ),
         });
+      },
+
+      // 创建菜单变量
+      createMenuVariable: (
+        menuId: string,
+        key: string,
+        value: string,
+        description?: string
+      ) => {
+        const state = get();
+        const menu = state.menus.find((m) => m.id === menuId);
+        if (!menu) return;
+
+        // 检查键名是否已存在
+        const existing = menu.variables?.find((v) => v.key === key);
+        if (existing) {
+          throw new Error(`变量键名 "${key}" 已存在`);
+        }
+
+        const newVariable: Variable = {
+          id: `var-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+          key,
+          value,
+          description,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+
+        set({
+          menus: state.menus.map((m) =>
+            m.id === menuId
+              ? {
+                  ...m,
+                  variables: [...(m.variables || []), newVariable],
+                  updatedAt: new Date().toISOString(),
+                }
+              : m
+          ),
+        });
+      },
+
+      // 更新菜单变量
+      updateMenuVariable: (
+        menuId: string,
+        variableId: string,
+        updates: Partial<Omit<Variable, "id" | "createdAt">>
+      ) => {
+        const state = get();
+        const menu = state.menus.find((m) => m.id === menuId);
+        if (!menu) return;
+
+        // 如果更新了 key，检查是否与其他变量冲突
+        if (updates.key) {
+          const existing = menu.variables?.find(
+            (v) => v.key === updates.key && v.id !== variableId
+          );
+          if (existing) {
+            throw new Error(`变量键名 "${updates.key}" 已存在`);
+          }
+        }
+
+        set({
+          menus: state.menus.map((m) =>
+            m.id === menuId
+              ? {
+                  ...m,
+                  variables: m.variables?.map((v) =>
+                    v.id === variableId
+                      ? {
+                          ...v,
+                          ...updates,
+                          updatedAt: new Date().toISOString(),
+                        }
+                      : v
+                  ),
+                  updatedAt: new Date().toISOString(),
+                }
+              : m
+          ),
+        });
+      },
+
+      // 删除菜单变量
+      deleteMenuVariable: (menuId: string, variableId: string) => {
+        const state = get();
+        set({
+          menus: state.menus.map((m) =>
+            m.id === menuId
+              ? {
+                  ...m,
+                  variables: m.variables?.filter((v) => v.id !== variableId),
+                  updatedAt: new Date().toISOString(),
+                }
+              : m
+          ),
+        });
+      },
+
+      // 获取菜单变量
+      getMenuVariable: (menuId: string, variableId: string) => {
+        const state = get();
+        const menu = state.menus.find((m) => m.id === menuId);
+        return menu?.variables?.find((v) => v.id === variableId);
+      },
+
+      // 根据键名查找菜单变量
+      findMenuVariableByKey: (menuId: string, key: string) => {
+        const state = get();
+        const menu = state.menus.find((m) => m.id === menuId);
+        return menu?.variables?.find((v) => v.key === key);
       },
     }),
     {
