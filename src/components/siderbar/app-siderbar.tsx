@@ -113,34 +113,44 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     router.push(navigateToMenu(menuId));
   };
 
-  // 搜索过滤函数
-  const filterMenusBySearch = (menuList: MenuConfig[]) => {
-    if (!searchQuery.trim()) return menuList;
-    return menuList.filter((menu) =>
-      menu.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  };
-
-  // 获取未分组的菜单（按 order 排序 + 搜索过滤）
-  const ungroupedMenus = filterMenusBySearch(
-    menus.filter((menu) => !menu.groupId).sort((a, b) => a.order - b.order)
+  // 搜索过滤函数 - 使用 useCallback 缓存
+  const filterMenusBySearch = React.useCallback(
+    (menuList: MenuConfig[]) => {
+      if (!searchQuery.trim()) return menuList;
+      return menuList.filter((menu) =>
+        menu.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    },
+    [searchQuery]
   );
 
-  // 获取分组的菜单 IDs（按 order 排序 + 搜索过滤）
-  const getGroupMenuIds = (groupId: string) =>
-    filterMenusBySearch(
-      menus
-        .filter((menu) => menu.groupId === groupId)
-        .sort((a, b) => a.order - b.order)
-    ).map((m) => m.id);
+  // 获取未分组的菜单（按 order 排序 + 搜索过滤）- 使用 useMemo 缓存
+  const ungroupedMenus = React.useMemo(() => {
+    return filterMenusBySearch(
+      menus.filter((menu) => !menu.groupId).sort((a, b) => a.order - b.order)
+    );
+  }, [menus, filterMenusBySearch]);
 
-  // 获取排序后的菜单组（如果组内有匹配的菜单才显示）
-  const sortedGroups = [...menuGroups]
-    .sort((a, b) => a.order - b.order)
-    .filter((group) => {
-      if (!searchQuery.trim()) return true;
-      return getGroupMenuIds(group.id).length > 0;
-    });
+  // 获取分组的菜单 IDs（按 order 排序 + 搜索过滤）- 使用 useCallback 缓存
+  const getGroupMenuIds = React.useCallback(
+    (groupId: string) =>
+      filterMenusBySearch(
+        menus
+          .filter((menu) => menu.groupId === groupId)
+          .sort((a, b) => a.order - b.order)
+      ).map((m) => m.id),
+    [menus, filterMenusBySearch]
+  );
+
+  // 获取排序后的菜单组（如果组内有匹配的菜单才显示）- 使用 useMemo 缓存
+  const sortedGroups = React.useMemo(() => {
+    return [...menuGroups]
+      .sort((a, b) => a.order - b.order)
+      .filter((group) => {
+        if (!searchQuery.trim()) return true;
+        return getGroupMenuIds(group.id).length > 0;
+      });
+  }, [menuGroups, searchQuery, getGroupMenuIds]);
 
   // 切换侧边栏展开/收起
   const toggleSidebar = () => {

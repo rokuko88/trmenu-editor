@@ -1,5 +1,6 @@
 "use client";
 
+import * as React from "react";
 import {
   Plus,
   Folder,
@@ -65,15 +66,18 @@ export function DraggableMenuGroup({
 }: DraggableMenuGroupProps) {
   const router = useRouter();
 
-  // 直接从 zustand 获取数据和 actions
-  const menus = useMenuStore((state) =>
-    state.menus.filter((m) => groupMenus.includes(m.id))
-  );
+  // 获取所有菜单和 actions
+  const allMenus = useMenuStore((state) => state.menus);
   const createMenu = useMenuStore((state) => state.createMenu);
   const deleteGroup = useMenuStore((state) => state.deleteGroup);
   const renameGroup = useMenuStore((state) => state.renameGroup);
   const pasteMenu = useMenuStore((state) => state.pasteMenu);
   const menuClipboard = useMenuStore((state) => state.menuClipboard);
+
+  // 使用 useMemo 缓存过滤后的菜单，避免无限循环
+  const menus = React.useMemo(() => {
+    return allMenus.filter((m) => groupMenus.includes(m.id));
+  }, [allMenus, groupMenus]);
 
   // Hooks for modal dialogs
   const { confirm, ConfirmDialog } = useConfirm();
