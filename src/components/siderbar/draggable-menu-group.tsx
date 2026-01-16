@@ -163,7 +163,7 @@ export function DraggableMenuGroup({
                 ref={setDropRef}
                 className={`${
                   isOver ? "bg-accent/50 rounded-md" : ""
-                } transition-colors relative group/group`}
+                } group/group relative transition-colors`}
               >
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton
@@ -178,13 +178,13 @@ export function DraggableMenuGroup({
                       }`}
                     />
                     <Folder className="h-4 w-4 shrink-0" />
-                    <span className="truncate flex-1">{group.name}</span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="flex-1 truncate">{group.name}</span>
+                    <span className="text-muted-foreground text-xs">
                       {menus.length}
                     </span>
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
-                <div className="absolute right-1 top-1/2 -translate-y-1/2 z-10 flex gap-0.5 opacity-0 group-hover/group:opacity-100 transition-opacity">
+                <div className="absolute top-1/2 right-1 z-10 flex -translate-y-1/2 gap-0.5 opacity-0 transition-opacity group-hover/group:opacity-100">
                   <Button
                     variant="ghost"
                     size="icon"

@@ -14,7 +14,7 @@ import {
 export default function SettingsPage() {
   return (
     <SidebarInset>
-      <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <header className="bg-background/95 supports-backdrop-filter:bg-background/60 flex h-14 shrink-0 items-center gap-2 border-b backdrop-blur">
         <div className="flex items-center gap-2 px-3">
           <SidebarTrigger className="-ml-1" />
           <Separator orientation="vertical" className="mr-2 h-4" />
@@ -32,11 +32,11 @@ export default function SettingsPage() {
         </div>
       </header>
       <div className="flex flex-1 flex-col gap-4 p-4">
-        <div className="h-full flex items-center justify-center rounded-xl border bg-muted/50">
-          <div className="text-center text-muted-foreground">
-            <div className="text-6xl mb-4">⚙️</div>
+        <div className="bg-muted/50 flex h-full items-center justify-center rounded-xl border">
+          <div className="text-muted-foreground text-center">
+            <div className="mb-4 text-6xl">⚙️</div>
             <p className="text-lg font-medium">设置页面</p>
-            <p className="text-sm mt-2">即将推出</p>
+            <p className="mt-2 text-sm">即将推出</p>
           </div>
         </div>
       </div>

@@ -33,7 +33,7 @@ export function WorkspaceMenu() {
       <div className="group-data-[collapsible=icon]:hidden">
         <SidebarGroupLabel>工作区</SidebarGroupLabel>
       </div>
-      <div className="hidden group-data-[collapsible=icon]:flex h-8 items-center px-2">
+      <div className="hidden h-8 items-center px-2 group-data-[collapsible=icon]:flex">
         <Separator />
       </div>
       <SidebarMenu>
@@ -54,7 +54,7 @@ export function WorkspaceMenu() {
                 <History className="h-4 w-4 shrink-0" />
                 <span className="truncate">最近使用</span>
                 {recentItems.length > 0 && (
-                  <span className="ml-auto text-xs text-muted-foreground">
+                  <span className="text-muted-foreground ml-auto text-xs">
                     {recentItems.length}
                   </span>
                 )}
@@ -63,15 +63,15 @@ export function WorkspaceMenu() {
             <DropdownMenuContent align="start" className="w-64">
               {recentItems.length === 0 ? (
                 <div className="px-2 py-6 text-center">
-                  <History className="h-8 w-8 mx-auto mb-2 opacity-20" />
-                  <p className="text-xs text-muted-foreground">
+                  <History className="mx-auto mb-2 h-8 w-8 opacity-20" />
+                  <p className="text-muted-foreground text-xs">
                     暂无最近打开的菜单
                   </p>
                 </div>
               ) : (
                 <>
                   <div className="px-2 py-1.5">
-                    <p className="text-xs font-medium text-muted-foreground">
+                    <p className="text-muted-foreground text-xs font-medium">
                       最近打开
                     </p>
                   </div>
@@ -83,11 +83,11 @@ export function WorkspaceMenu() {
                       }}
                       className="cursor-pointer"
                     >
-                      <File className="h-4 w-4 mr-2 shrink-0" />
+                      <File className="mr-2 h-4 w-4 shrink-0" />
                       <span className="flex-1 truncate text-sm">
                         {item.menuName}
                       </span>
-                      <span className="text-xs text-muted-foreground ml-2">
+                      <span className="text-muted-foreground ml-2 text-xs">
                         {index < 9 && `⌘${index + 1}`}
                       </span>
                     </DropdownMenuItem>
@@ -97,7 +97,7 @@ export function WorkspaceMenu() {
                     onClick={clearRecent}
                     className="text-destructive text-sm"
                   >
-                    <X className="h-4 w-4 mr-2" />
+                    <X className="mr-2 h-4 w-4" />
                     清空历史记录
                   </DropdownMenuItem>
                 </>

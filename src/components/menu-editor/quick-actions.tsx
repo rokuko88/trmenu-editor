@@ -94,17 +94,17 @@ export function QuickActions({ onAction }: QuickActionsProps) {
     .filter((category) => category.items.length > 0);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* 头部 */}
-      <div className="p-4 border-b">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles className="h-4 w-4 text-primary" />
+      <div className="border-b p-4">
+        <div className="mb-3 flex items-center gap-2">
+          <Sparkles className="text-primary h-4 w-4" />
           <h3 className="text-sm font-medium">快速操作</h3>
         </div>
 
         {/* 搜索 */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -116,10 +116,10 @@ export function QuickActions({ onAction }: QuickActionsProps) {
 
       {/* 操作列表 */}
       <ScrollArea className="flex-1">
-        <div className="p-4 space-y-6">
+        <div className="space-y-6 p-4">
           {filteredActions.map((category) => (
             <div key={category.category}>
-              <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-2">
+              <h4 className="text-muted-foreground mb-2 text-xs font-medium tracking-wider uppercase">
                 {category.category}
               </h4>
               <div className="space-y-1">
@@ -127,16 +127,16 @@ export function QuickActions({ onAction }: QuickActionsProps) {
                   <button
                     key={item.action}
                     onClick={() => onAction?.(item.action)}
-                    className="w-full flex items-start gap-3 p-2.5 text-left hover:bg-accent rounded-md transition-colors group"
+                    className="hover:bg-accent group flex w-full items-start gap-3 rounded-md p-2.5 text-left transition-colors"
                   >
                     <div className="mt-0.5">
-                      <item.icon className="h-4 w-4 text-muted-foreground" />
+                      <item.icon className="text-muted-foreground h-4 w-4" />
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium mb-0.5">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 text-sm font-medium">
                         {item.label}
                       </div>
-                      <div className="text-xs text-muted-foreground">
+                      <div className="text-muted-foreground text-xs">
                         {item.description}
                       </div>
                     </div>
@@ -149,8 +149,8 @@ export function QuickActions({ onAction }: QuickActionsProps) {
       </ScrollArea>
 
       {/* 底部提示 */}
-      <div className="p-4 border-t">
-        <div className="text-xs text-muted-foreground">
+      <div className="border-t p-4">
+        <div className="text-muted-foreground text-xs">
           <p className="mb-1">💡 快捷键提示：</p>
           <div className="space-y-0.5">
             <div className="flex items-center justify-between">

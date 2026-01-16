@@ -426,7 +426,7 @@ export function MenuCanvas({
               >
                 <Copy className="mr-2 h-4 w-4" />
                 <span>复制</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-auto text-xs">
                   Ctrl+C
                 </span>
               </ContextMenuItem>
@@ -436,7 +436,7 @@ export function MenuCanvas({
               >
                 <Clipboard className="mr-2 h-4 w-4" />
                 <span>粘贴到此</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-auto text-xs">
                   Ctrl+V
                 </span>
               </ContextMenuItem>
@@ -455,7 +455,7 @@ export function MenuCanvas({
               >
                 <Trash2 className="mr-2 h-4 w-4" />
                 <span>删除</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-auto text-xs">
                   Del
                 </span>
               </ContextMenuItem>
@@ -468,7 +468,7 @@ export function MenuCanvas({
               >
                 <Clipboard className="mr-2 h-4 w-4" />
                 <span>粘贴</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-auto text-xs">
                   Ctrl+V
                 </span>
               </ContextMenuItem>
@@ -568,7 +568,7 @@ export function MenuCanvas({
       onBatchMove={handleBatchDragMove}
     >
       {ConfirmDialog}
-      <div className="flex-1 flex flex-col bg-accent relative">
+      <div className="bg-accent relative flex flex-1 flex-col">
         {/* Canvas 工具栏 */}
         <CanvasToolbar
           viewMode={viewMode}
@@ -588,7 +588,7 @@ export function MenuCanvas({
           </div>
         ) : (
           <div
-            className="flex-1 flex flex-col items-center justify-center p-8 select-none relative"
+            className="relative flex flex-1 flex-col items-center justify-center p-8 select-none"
             onMouseDown={handleCanvasMouseDown}
             style={{
               ...(showGrid && {
@@ -599,12 +599,12 @@ export function MenuCanvas({
               }),
             }}
           >
-            <div className="w-full max-w-xl space-y-4 pointer-events-none relative z-10">
+            <div className="pointer-events-none relative z-10 w-full max-w-xl space-y-4">
               {/* 菜单标题栏 */}
               <div className="flex items-center justify-between px-1">
                 <div>
                   <h2 className="text-sm font-medium">{menu.title}</h2>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-muted-foreground text-xs">
                     {menu.type} • {menu.size} 槽位 ({rows} 行) •{" "}
                     {menu.items.length} 项
                   </p>
@@ -612,11 +612,11 @@ export function MenuCanvas({
               </div>
 
               {/* Inventory 容器 */}
-              <div className="space-y-0 pointer-events-auto">
+              <div className="pointer-events-auto space-y-0">
                 <div
                   ref={containerRef}
                   className={cn(
-                    "relative bg-card p-2 border transition-all",
+                    "bg-card relative border p-2 transition-all",
                     canResize ? "rounded-t-sm" : "rounded-sm",
                     !isResizingMenu && "transition-all duration-200"
                   )}
@@ -642,13 +642,13 @@ export function MenuCanvas({
                       return (
                         <div
                           key={`preview-${slot}`}
-                          className="relative aspect-square bg-primary/5 border-2 border-dashed border-primary/50 animate-pulse"
+                          className="bg-primary/5 border-primary/50 relative aspect-square animate-pulse border-2 border-dashed"
                         >
-                          <span className="absolute top-0.5 left-0.5 text-[8px] text-primary/70 font-mono leading-none">
+                          <span className="text-primary/70 absolute top-0.5 left-0.5 font-mono text-[8px] leading-none">
                             {slot}
                           </span>
                           <div className="absolute inset-0 flex items-center justify-center">
-                            <Plus className="h-4 w-4 text-primary/40" />
+                            <Plus className="text-primary/40 h-4 w-4" />
                           </div>
                         </div>
                       );
@@ -659,14 +659,14 @@ export function MenuCanvas({
                     previewRows !== null &&
                     previewRows < rows && (
                       <div
-                        className="absolute left-0 right-0 z-30 pointer-events-none flex items-center justify-center"
+                        className="pointer-events-none absolute right-0 left-0 z-30 flex items-center justify-center"
                         style={{
                           top: `calc(${
                             (previewRows / (previewRows || 1)) * 100
                           }%)`,
                         }}
                       >
-                        <div className="bg-destructive text-destructive-foreground text-xs px-3 py-1 rounded-full font-medium shadow-lg -mt-3">
+                        <div className="bg-destructive text-destructive-foreground -mt-3 rounded-full px-3 py-1 text-xs font-medium shadow-lg">
                           删除 {rows - previewRows} 行
                         </div>
                       </div>
@@ -687,9 +687,9 @@ export function MenuCanvas({
                 {canResize && !showPlayerInventory && (
                   <div
                     className={cn(
-                      "relative w-full h-10 rounded-t-none border-t-0 border border-border bg-card",
+                      "border-border bg-card relative h-10 w-full rounded-t-none border border-t-0",
                       "flex items-center justify-center gap-2",
-                      "text-xs text-muted-foreground",
+                      "text-muted-foreground text-xs",
                       "cursor-ns-resize select-none",
                       "hover:bg-accent/50 hover:text-foreground transition-colors",
                       isResizingMenu &&
@@ -728,17 +728,17 @@ export function MenuCanvas({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full h-8 rounded-t-none text-xs text-muted-foreground hover:text-foreground"
+                  className="text-muted-foreground hover:text-foreground h-8 w-full rounded-t-none text-xs"
                   onClick={() => setShowPlayerInventory(!showPlayerInventory)}
                 >
                   {showPlayerInventory ? (
                     <>
-                      <ChevronUp className="h-3.5 w-3.5 mr-1.5" />
+                      <ChevronUp className="mr-1.5 h-3.5 w-3.5" />
                       隐藏玩家物品栏
                     </>
                   ) : (
                     <>
-                      <ChevronDown className="h-3.5 w-3.5 mr-1.5" />
+                      <ChevronDown className="mr-1.5 h-3.5 w-3.5" />
                       显示玩家物品栏
                     </>
                   )}
@@ -748,14 +748,14 @@ export function MenuCanvas({
                 {showPlayerInventory && (
                   <div className="space-y-2">
                     <div className="px-1">
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         玩家物品栏（仅预览）
                       </p>
                     </div>
 
                     {/* 主物品栏 (3行9列) */}
                     <div
-                      className="bg-card rounded-sm p-2 border opacity-50"
+                      className="bg-card rounded-sm border p-2 opacity-50"
                       style={{
                         display: "grid",
                         gridTemplateColumns: `repeat(9, 1fr)`,
@@ -765,9 +765,9 @@ export function MenuCanvas({
                       {Array.from({ length: 27 }, (_, i) => (
                         <div
                           key={`player-${i}`}
-                          className="relative aspect-square border border-border/40 bg-background"
+                          className="border-border/40 bg-background relative aspect-square border"
                         >
-                          <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
+                          <span className="text-muted-foreground/40 absolute top-1 left-1 font-mono text-[9px] leading-none">
                             {i}
                           </span>
                         </div>
@@ -776,7 +776,7 @@ export function MenuCanvas({
 
                     {/* 快捷栏 (1行9列) */}
                     <div
-                      className="bg-card rounded-sm p-2 border opacity-50"
+                      className="bg-card rounded-sm border p-2 opacity-50"
                       style={{
                         display: "grid",
                         gridTemplateColumns: `repeat(9, 1fr)`,
@@ -786,9 +786,9 @@ export function MenuCanvas({
                       {Array.from({ length: 9 }, (_, i) => (
                         <div
                           key={`hotbar-${i}`}
-                          className="relative aspect-square border border-border/40 bg-background"
+                          className="border-border/40 bg-background relative aspect-square border"
                         >
-                          <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none">
+                          <span className="text-muted-foreground/40 absolute top-1 left-1 font-mono text-[9px] leading-none">
                             {i}
                           </span>
                         </div>

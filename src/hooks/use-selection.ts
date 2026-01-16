@@ -29,10 +29,10 @@ export function useSelection({ onSelectionChange }: UseSelectionOptions = {}) {
 
     // 检查点击的目标元素
     const target = e.target as HTMLElement;
-    
+
     // 如果点击的是可拖动的槽位（带有 cursor-move 类），不启动框选
-    const slotElement = target.closest('[data-slot]') as HTMLElement;
-    if (slotElement && slotElement.classList.contains('cursor-move')) {
+    const slotElement = target.closest("[data-slot]") as HTMLElement;
+    if (slotElement && slotElement.classList.contains("cursor-move")) {
       // 这是有物品的槽位，不启动框选，让拖动逻辑处理
       return;
     }

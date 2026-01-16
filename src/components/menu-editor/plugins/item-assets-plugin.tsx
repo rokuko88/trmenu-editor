@@ -253,16 +253,16 @@ export function ItemAssetsPlugin({
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full flex-col">
       {/* 搜索和筛选 */}
-      <div className="p-2 space-y-1.5 border-b shrink-0">
+      <div className="shrink-0 space-y-1.5 border-b p-2">
         <div className="relative">
-          <Search className="absolute left-2 top-2 h-3 w-3 text-muted-foreground" />
+          <Search className="text-muted-foreground absolute top-2 left-2 h-3 w-3" />
           <Input
             placeholder="搜索资产..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-7 h-7 text-xs"
+            className="h-7 pl-7 text-xs"
           />
         </div>
 
@@ -281,25 +281,25 @@ export function ItemAssetsPlugin({
       </div>
 
       {/* 操作按钮 */}
-      <div className="p-2 border-b flex gap-1.5 shrink-0">
+      <div className="flex shrink-0 gap-1.5 border-b p-2">
         <Button
           variant="outline"
           size="sm"
-          className="flex-1 h-6 text-[10px]"
+          className="h-6 flex-1 text-[10px]"
           onClick={addCurrentItem}
           disabled={!selectedItem}
         >
-          <Plus className="h-2.5 w-2.5 mr-0.5" />
+          <Plus className="mr-0.5 h-2.5 w-2.5" />
           添加当前物品
         </Button>
       </div>
 
       {/* 资产列表 */}
       <ScrollArea className="flex-1">
-        <div className="p-2 space-y-1.5">
+        <div className="space-y-1.5 p-2">
           {filteredAssets.length === 0 ? (
-            <div className="text-center py-6 text-muted-foreground">
-              <Package className="h-8 w-8 mx-auto mb-1.5 opacity-20" />
+            <div className="text-muted-foreground py-6 text-center">
+              <Package className="mx-auto mb-1.5 h-8 w-8 opacity-20" />
               <p className="text-xs">暂无资产</p>
             </div>
           ) : (
@@ -307,7 +307,7 @@ export function ItemAssetsPlugin({
               <div
                 key={asset.id}
                 className={cn(
-                  "group relative p-2 border rounded-md hover:bg-accent/50 transition-colors cursor-move",
+                  "group hover:bg-accent/50 relative cursor-move rounded-md border p-2 transition-colors",
                   draggedItem?.id === asset.id && "opacity-50"
                 )}
                 draggable
@@ -315,20 +315,20 @@ export function ItemAssetsPlugin({
                 onDragEnd={() => setDraggedItem(null)}
               >
                 {/* 拖拽提示 */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                <div className="pointer-events-none absolute inset-0 flex items-center justify-center opacity-0 transition-opacity group-hover:opacity-100">
                   <div className="bg-primary/10 rounded px-1.5 py-0.5">
                     <span className="text-primary font-medium">拖拽到画布</span>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-1.5">
-                  <div className="h-7 w-7 rounded bg-linear-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-linear-to-br from-blue-500/20 to-purple-500/20">
                     <Package className="h-3.5 w-3.5 text-blue-500" />
                   </div>
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-1.5">
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-xs truncate">
+                      <div className="min-w-0 flex-1">
+                        <h4 className="truncate text-xs font-medium">
                           {asset.name}
                         </h4>
                         <p className="text-muted-foreground truncate leading-tight">
@@ -345,28 +345,28 @@ export function ItemAssetsPlugin({
                       </Button>
                     </div>
 
-                    <div className="flex items-center gap-1 mt-1">
+                    <div className="mt-1 flex items-center gap-1">
                       <Badge
                         variant="secondary"
-                        className="text-[9px] h-4 px-1"
+                        className="h-4 px-1 text-[9px]"
                       >
                         {asset.category}
                       </Badge>
-                      <span className="text-[9px] text-muted-foreground font-mono">
+                      <span className="text-muted-foreground font-mono text-[9px]">
                         {asset.template.material}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-1.5 pt-1.5 border-t flex gap-1">
+                <div className="mt-1.5 flex gap-1 border-t pt-1.5">
                   <Button
                     variant="outline"
                     size="sm"
                     className="h-6 flex-1"
                     onClick={() => applyAsset(asset)}
                   >
-                    <Download className="h-2.5 w-2.5 mr-0.5" />
+                    <Download className="mr-0.5 h-2.5 w-2.5" />
                     使用
                   </Button>
                 </div>
@@ -377,7 +377,7 @@ export function ItemAssetsPlugin({
       </ScrollArea>
 
       {/* 底部统计 */}
-      <div className="p-2 border-t text-muted-foreground text-center shrink-0">
+      <div className="text-muted-foreground shrink-0 border-t p-2 text-center">
         共 {filteredAssets.length} 个资产
       </div>
 

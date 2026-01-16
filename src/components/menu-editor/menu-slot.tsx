@@ -40,15 +40,15 @@ export function MenuSlot({
     <div
       className={cn(
         "relative aspect-square transition-colors",
-        "hover:border-primary/40 cursor-pointer group",
+        "hover:border-primary/40 group cursor-pointer",
         // 基础边框和圆角
-        "border border-border/40",
+        "border-border/40 border",
         // 选中态 - 移除圆角，避免边框断开
         isInSelection && "rounded-none",
         // 单独选中的物品
         isSelected &&
           !isInSelection &&
-          "border-primary ring-2 ring-primary/20 bg-primary/10 rounded-sm",
+          "border-primary ring-primary/20 bg-primary/10 rounded-sm ring-2",
         // 在选区内
         isInSelection && "bg-primary/8",
         // 拖拽悬停
@@ -94,21 +94,21 @@ export function MenuSlot({
             e.stopPropagation();
           }}
           className={cn(
-            "w-full h-full",
-            isDragging && "opacity-40 cursor-grabbing",
+            "h-full w-full",
+            isDragging && "cursor-grabbing opacity-40",
             "cursor-grab active:cursor-grabbing"
           )}
         >
           {children}
         </div>
       ) : (
-        <div className="w-full h-full flex items-center justify-center text-muted-foreground/20 group-hover:text-muted-foreground/40 transition-colors">
+        <div className="text-muted-foreground/20 group-hover:text-muted-foreground/40 flex h-full w-full items-center justify-center transition-colors">
           <Plus className="h-4 w-4" />
         </div>
       )}
 
       {/* 槽位号 */}
-      <span className="absolute top-1 left-1 text-[9px] text-muted-foreground/40 font-mono leading-none pointer-events-none">
+      <span className="text-muted-foreground/40 pointer-events-none absolute top-1 left-1 font-mono text-[9px] leading-none">
         {slot}
       </span>
     </div>

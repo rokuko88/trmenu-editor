@@ -464,7 +464,7 @@ export default function MenuEditorClient() {
   return (
     <SidebarInset>
       {/* 编辑器主体 */}
-      <div className="flex flex-col h-screen">
+      <div className="flex h-screen flex-col">
         {/* 工具栏 */}
         <EditorToolbar
           menuName={currentMenu.name}
@@ -475,7 +475,7 @@ export default function MenuEditorClient() {
         />
 
         {/* 编辑器内容区 */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 overflow-hidden">
           {/* 左侧：菜单画布 */}
           <MenuCanvas
             menu={currentMenu}
@@ -494,7 +494,7 @@ export default function MenuEditorClient() {
           />
 
           {/* 右侧面板容器 */}
-          <div className="flex shrink-0 relative">
+          <div className="relative flex shrink-0">
             {/* 属性面板 */}
             <PropertiesPanel
               menu={currentMenu}

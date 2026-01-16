@@ -26,8 +26,8 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
     <SidebarFooterUI>
       {/* 展开状态 */}
       <div className="group-data-[collapsible=icon]:hidden">
-        <div className="flex items-center justify-between px-2 py-2 gap-2">
-          <div className="flex-1 min-w-0 overflow-hidden">
+        <div className="flex items-center justify-between gap-2 px-2 py-2">
+          <div className="min-w-0 flex-1 overflow-hidden">
             <GithubStar />
           </div>
           <Popover>
@@ -35,7 +35,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 rounded-full shrink-0"
+                className="h-8 w-8 shrink-0 rounded-full"
                 title="设置"
               >
                 <Settings className="h-4 w-4" />
@@ -45,7 +45,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
               <div className="space-y-3">
                 {/* 主题切换 */}
                 <div className="flex items-center justify-between gap-12">
-                  <div className="text-xs font-medium text-muted-foreground whitespace-nowrap">
+                  <div className="text-muted-foreground text-xs font-medium whitespace-nowrap">
                     主题
                   </div>
                   <ThemeSwitcher />
@@ -57,7 +57,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full h-8 text-xs"
+                  className="h-8 w-full text-xs"
                   onClick={() => {
                     router.push("/settings");
                   }}
@@ -70,7 +70,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-8 w-8 rounded-full shrink-0"
+            className="h-8 w-8 shrink-0 rounded-full"
             onClick={onToggle}
             title="收起侧边栏"
           >
@@ -80,7 +80,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
       </div>
 
       {/* 收起状态 */}
-      <div className="hidden group-data-[collapsible=icon]:flex flex-col items-center py-2 gap-2">
+      <div className="hidden flex-col items-center gap-2 py-2 group-data-[collapsible=icon]:flex">
         <Popover>
           <PopoverTrigger asChild>
             <Button
@@ -96,7 +96,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
             <div className="space-y-3">
               {/* 主题切换 */}
               <div className="space-y-2">
-                <div className="text-xs font-medium text-muted-foreground">
+                <div className="text-muted-foreground text-xs font-medium">
                   主题
                 </div>
                 <ThemeSwitcher />
@@ -108,7 +108,7 @@ export function SidebarFooter({ isOpen, onToggle }: SidebarFooterProps) {
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full h-8 text-xs"
+                className="h-8 w-full text-xs"
                 onClick={() => {
                   router.push("/settings");
                 }}

@@ -7,7 +7,12 @@ interface SelectionBoxProps {
   endY: number;
 }
 
-export function SelectionBox({ startX, startY, endX, endY }: SelectionBoxProps) {
+export function SelectionBox({
+  startX,
+  startY,
+  endX,
+  endY,
+}: SelectionBoxProps) {
   const left = Math.min(startX, endX);
   const top = Math.min(startY, endY);
   const width = Math.abs(endX - startX);
@@ -15,7 +20,7 @@ export function SelectionBox({ startX, startY, endX, endY }: SelectionBoxProps) 
 
   return (
     <div
-      className="absolute pointer-events-none border-2 border-primary bg-primary/5 rounded-sm"
+      className="border-primary bg-primary/5 pointer-events-none absolute rounded-sm border-2"
       style={{
         left: `${left}px`,
         top: `${top}px`,

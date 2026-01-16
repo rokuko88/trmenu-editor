@@ -36,13 +36,13 @@ export function EditorToolbar({
   hasUnsavedChanges = false,
 }: EditorToolbarProps) {
   return (
-    <div className="h-12 border-b flex items-center justify-between px-4 gap-3">
+    <div className="flex h-12 items-center justify-between gap-3 border-b px-4">
       {/* 左侧：文件名和主要操作 */}
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">{menuName}</span>
           {hasUnsavedChanges && (
-            <span className="text-xs text-muted-foreground">• 未保存</span>
+            <span className="text-muted-foreground text-xs">• 未保存</span>
           )}
         </div>
         <Separator orientation="vertical" className="h-4" />
@@ -56,7 +56,7 @@ export function EditorToolbar({
                   onClick={onSave}
                   className="text-sm"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className="mr-2 h-4 w-4" />
                   保存
                 </Button>
               </TooltipTrigger>
@@ -73,7 +73,7 @@ export function EditorToolbar({
                   onClick={onExport}
                   className="text-sm"
                 >
-                  <FileDown className="h-4 w-4 mr-2" />
+                  <FileDown className="mr-2 h-4 w-4" />
                   导出
                 </Button>
               </TooltipTrigger>
@@ -90,7 +90,7 @@ export function EditorToolbar({
                   onClick={onImport}
                   className="text-sm"
                 >
-                  <FileUp className="h-4 w-4 mr-2" />
+                  <FileUp className="mr-2 h-4 w-4" />
                   导入
                 </Button>
               </TooltipTrigger>
@@ -140,7 +140,7 @@ export function EditorToolbar({
                 onClick={onPreview}
                 className="text-sm"
               >
-                <Play className="h-4 w-4 mr-2" />
+                <Play className="mr-2 h-4 w-4" />
                 预览
               </Button>
             </TooltipTrigger>

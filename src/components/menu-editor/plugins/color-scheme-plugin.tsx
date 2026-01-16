@@ -180,11 +180,11 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
   return (
     <>
       <ScrollArea className="h-full">
-        <div className="p-3 space-y-3">
+        <div className="space-y-3 p-3">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5">
               <Palette className="h-3.5 w-3.5 text-pink-500" />
-              <h3 className="font-semibold text-xs">配色方案</h3>
+              <h3 className="text-xs font-semibold">配色方案</h3>
             </div>
             <p className="text-muted-foreground leading-tight">
               快速应用预设的配色方案美化菜单
@@ -193,7 +193,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
 
           {/* 明亮主题 */}
           <div className="space-y-1.5">
-            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-muted-foreground font-medium tracking-wider uppercase">
               明亮主题
             </h4>
             {groupedSchemes.light.map((scheme) => (
@@ -208,7 +208,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
 
           {/* 深色主题 */}
           <div className="space-y-1.5">
-            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-muted-foreground font-medium tracking-wider uppercase">
               深色主题
             </h4>
             {groupedSchemes.dark.map((scheme) => (
@@ -223,7 +223,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
 
           {/* 彩色主题 */}
           <div className="space-y-1.5">
-            <h4 className="font-medium text-muted-foreground uppercase tracking-wider">
+            <h4 className="text-muted-foreground font-medium tracking-wider uppercase">
               彩色主题
             </h4>
             {groupedSchemes.colorful.map((scheme) => (
@@ -254,35 +254,35 @@ function SchemeCard({
   onApplyFull: (scheme: ColorScheme) => void;
 }) {
   return (
-    <div className="group p-2 border rounded-md hover:bg-accent/50 transition-colors">
+    <div className="group hover:bg-accent/50 rounded-md border p-2 transition-colors">
       <div className="flex items-start gap-2">
         {/* 颜色预览 */}
-        <div className="flex gap-0.5 shrink-0">
+        <div className="flex shrink-0 gap-0.5">
           {scheme.preview.map((color, idx) => (
             <div
               key={idx}
-              className="w-2 h-8 rounded-sm"
+              className="h-8 w-2 rounded-sm"
               style={{ backgroundColor: color }}
             />
           ))}
         </div>
 
         {/* 信息 */}
-        <div className="flex-1 min-w-0">
-          <h4 className="font-medium text-xs">{scheme.name}</h4>
+        <div className="min-w-0 flex-1">
+          <h4 className="text-xs font-medium">{scheme.name}</h4>
           <p className="text-muted-foreground mt-0.5 leading-tight">
             {scheme.description}
           </p>
 
           {/* 操作按钮 */}
-          <div className="flex gap-1 mt-1.5">
+          <div className="mt-1.5 flex gap-1">
             <Button
               variant="outline"
               size="sm"
               className="h-6 flex-1 px-1.5"
               onClick={() => onApply(scheme)}
             >
-              <Download className="h-2.5 w-2.5 mr-0.5" />
+              <Download className="mr-0.5 h-2.5 w-2.5" />
               应用顶部
             </Button>
             <Button
@@ -291,7 +291,7 @@ function SchemeCard({
               className="h-6 flex-1 px-1.5"
               onClick={() => onApplyFull(scheme)}
             >
-              <Palette className="h-2.5 w-2.5 mr-0.5" />
+              <Palette className="mr-0.5 h-2.5 w-2.5" />
               完整应用
             </Button>
           </div>

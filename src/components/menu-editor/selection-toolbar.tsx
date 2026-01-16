@@ -39,7 +39,7 @@ export function SelectionToolbar({
     <div
       className={cn(
         "fixed bottom-8 left-1/2 -translate-x-1/2",
-        "bg-card border shadow-lg rounded-lg",
+        "bg-card rounded-lg border shadow-lg",
         "flex items-center gap-1 px-2 py-1",
         "animate-in slide-in-from-bottom-4 duration-200",
         className
@@ -47,7 +47,7 @@ export function SelectionToolbar({
     >
       {/* 选中数量 */}
       <div className="flex items-center gap-2 px-2">
-        <span className="text-sm font-medium text-foreground">
+        <span className="text-foreground text-sm font-medium">
           已选中 {selectedCount} 项
         </span>
       </div>
@@ -98,12 +98,12 @@ export function SelectionToolbar({
 
       {/* 编辑操作 */}
       <Button variant="ghost" size="sm" onClick={onCopy} className="h-8 px-3">
-        <Copy className="h-4 w-4 mr-1.5" />
+        <Copy className="mr-1.5 h-4 w-4" />
         复制
       </Button>
 
       <Button variant="ghost" size="sm" onClick={onCut} className="h-8 px-3">
-        <Scissors className="h-4 w-4 mr-1.5" />
+        <Scissors className="mr-1.5 h-4 w-4" />
         剪切
       </Button>
 
@@ -114,9 +114,9 @@ export function SelectionToolbar({
         variant="ghost"
         size="sm"
         onClick={onDelete}
-        className="h-8 px-3 text-destructive hover:text-destructive hover:bg-destructive/10"
+        className="text-destructive hover:text-destructive hover:bg-destructive/10 h-8 px-3"
       >
-        <Trash2 className="h-4 w-4 mr-1.5" />
+        <Trash2 className="mr-1.5 h-4 w-4" />
         删除
       </Button>
 

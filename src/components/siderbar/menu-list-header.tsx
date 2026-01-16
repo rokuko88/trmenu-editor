@@ -30,7 +30,7 @@ export function MenuListHeader({
   const createGroup = useMenuStore((state) => state.createGroup);
   return (
     <>
-      <div className="flex items-center justify-between px-2 mb-1">
+      <div className="mb-1 flex items-center justify-between px-2">
         <SidebarGroupLabel className="px-0">我的菜单</SidebarGroupLabel>
         <div className="flex items-center gap-1">
           {/* 清空按钮 */}
@@ -38,7 +38,7 @@ export function MenuListHeader({
             <Button
               variant="ghost"
               size="icon"
-              className="h-6 w-6 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+              className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 shrink-0"
               title="清空所有菜单"
               onClick={onClearAll}
             >
@@ -63,9 +63,9 @@ export function MenuListHeader({
                 onClick={onCreateMenu}
                 className="cursor-pointer"
               >
-                <File className="h-4 w-4 mr-2" />
+                <File className="mr-2 h-4 w-4" />
                 <span>创建菜单</span>
-                <span className="ml-auto text-xs text-muted-foreground">
+                <span className="text-muted-foreground ml-auto text-xs">
                   ⌘N
                 </span>
               </DropdownMenuItem>
@@ -73,7 +73,7 @@ export function MenuListHeader({
                 onClick={createGroup}
                 className="cursor-pointer"
               >
-                <Folder className="h-4 w-4 mr-2" />
+                <Folder className="mr-2 h-4 w-4" />
                 <span>创建菜单组</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -82,15 +82,15 @@ export function MenuListHeader({
       </div>
 
       {/* 搜索框 */}
-      <div className="px-2 mb-2">
+      <div className="mb-2 px-2">
         <div className="relative">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground pointer-events-none" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2 h-3.5 w-3.5 -translate-y-1/2" />
           <Input
             type="text"
             placeholder="搜索菜单..."
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="h-8 pl-7 pr-2 text-sm"
+            className="h-8 pr-2 pl-7 text-sm"
           />
         </div>
       </div>

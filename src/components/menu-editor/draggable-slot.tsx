@@ -62,7 +62,7 @@ export function DraggableSlot({
       ref={setRefs}
       data-slot={slot}
       className={cn(
-        "relative aspect-square bg-background",
+        "bg-background relative aspect-square",
         // 只对背景色和边框色应用过渡，opacity 立即变化
         "transition-[background-color,border-color] duration-150",
         // 默认边框（没有智能边框时）
@@ -70,12 +70,12 @@ export function DraggableSlot({
         // 选中状态（单独选中，不在选区中）- 提升 z-index 避免被遮挡
         isSelected &&
           !isInSelection &&
-          "ring-2 ring-primary ring-offset-1 z-10",
+          "ring-primary z-10 ring-2 ring-offset-1",
         // 框选状态 - 也需要提升 z-index
         isInSelection && "z-10",
         // 拖动悬停状态 - 更高的 z-index，带脉冲动画
         isDragOver &&
-          "border-primary bg-primary/10 ring-2 ring-primary ring-offset-1 z-20 animate-pulse",
+          "border-primary bg-primary/10 ring-primary z-20 animate-pulse ring-2 ring-offset-1",
         // 正在被拖动 - 立即变化，不使用过渡
         isBeingDragged && "opacity-40! transition-none!",
         // 可拖动光标
@@ -106,13 +106,13 @@ export function DraggableSlot({
       {...listeners}
     >
       {/* 槽位编号 */}
-      <span className="absolute top-0.5 left-0.5 text-[8px] text-muted-foreground/30 font-mono leading-none pointer-events-none select-none">
+      <span className="text-muted-foreground/30 pointer-events-none absolute top-0.5 left-0.5 font-mono text-[8px] leading-none select-none">
         {slot}
       </span>
 
       {/* 物品内容 */}
       {children && (
-        <div className="absolute inset-0 flex items-center justify-center p-1 pointer-events-none">
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center p-1">
           {children}
         </div>
       )}

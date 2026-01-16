@@ -141,11 +141,11 @@ export default function WelcomePage({
     <div className="flex h-full">
       {/* 左侧主要区域 */}
       <div className="flex-1 overflow-auto">
-        <div className="max-w-4xl mx-auto p-12 space-y-10">
+        <div className="mx-auto max-w-4xl space-y-10 p-12">
           {/* Logo 和标语 */}
           <div className="space-y-4">
             <div className="flex items-center gap-6">
-              <div className="relative w-24 h-24 shrink-0">
+              <div className="relative h-24 w-24 shrink-0">
                 <Image
                   src={getAssetPath("/image.png")}
                   alt="TrMenu Editor Logo"
@@ -157,10 +157,10 @@ export default function WelcomePage({
                 />
               </div>
               <div>
-                <h1 className="text-2xl font-semibold mb-1">
+                <h1 className="mb-1 text-2xl font-semibold">
                   欢迎使用 TrMenu Editor
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-muted-foreground text-sm">
                   可视化菜单配置编辑器，让菜单设计变得简单高效
                 </p>
               </div>
@@ -169,23 +169,23 @@ export default function WelcomePage({
             {/* 统计信息 */}
             {menus.length > 0 && (
               <div className="grid grid-cols-3 gap-3">
-                <div className="p-3 bg-card border rounded-lg">
-                  <div className="text-2xl font-semibold mb-0.5">
+                <div className="bg-card rounded-lg border p-3">
+                  <div className="mb-0.5 text-2xl font-semibold">
                     {menus.length}
                   </div>
-                  <div className="text-xs text-muted-foreground">个菜单</div>
+                  <div className="text-muted-foreground text-xs">个菜单</div>
                 </div>
-                <div className="p-3 bg-card border rounded-lg">
-                  <div className="text-2xl font-semibold mb-0.5">
+                <div className="bg-card rounded-lg border p-3">
+                  <div className="mb-0.5 text-2xl font-semibold">
                     {menuGroups.length}
                   </div>
-                  <div className="text-xs text-muted-foreground">个分组</div>
+                  <div className="text-muted-foreground text-xs">个分组</div>
                 </div>
-                <div className="p-3 bg-card border rounded-lg">
-                  <div className="text-2xl font-semibold mb-0.5">
+                <div className="bg-card rounded-lg border p-3">
+                  <div className="mb-0.5 text-2xl font-semibold">
                     {menus.reduce((sum, m) => sum + m.items.length, 0)}
                   </div>
-                  <div className="text-xs text-muted-foreground">个物品</div>
+                  <div className="text-muted-foreground text-xs">个物品</div>
                 </div>
               </div>
             )}
@@ -193,7 +193,7 @@ export default function WelcomePage({
 
           {/* 快速操作网格 */}
           <section>
-            <h2 className="text-sm font-medium mb-4 text-muted-foreground">
+            <h2 className="text-muted-foreground mb-4 text-sm font-medium">
               快速操作
             </h2>
             <div className="grid grid-cols-2 gap-3">
@@ -201,16 +201,16 @@ export default function WelcomePage({
                 <button
                   key={index}
                   onClick={action.action}
-                  className="flex items-start gap-4 p-4 text-left bg-card border rounded-lg hover:bg-accent hover:border-accent-foreground/20 transition-all group"
+                  className="bg-card hover:bg-accent hover:border-accent-foreground/20 group flex items-start gap-4 rounded-lg border p-4 text-left transition-all"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <action.icon className="w-5 h-5 text-primary" />
+                  <div className="bg-primary/10 group-hover:bg-primary/20 flex h-10 w-10 shrink-0 items-center justify-center rounded-lg transition-colors">
+                    <action.icon className="text-primary h-5 w-5" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-sm mb-0.5">
+                  <div className="min-w-0 flex-1">
+                    <div className="mb-0.5 text-sm font-medium">
                       {action.title}
                     </div>
-                    <div className="text-xs text-muted-foreground">
+                    <div className="text-muted-foreground text-xs">
                       {action.description}
                     </div>
                   </div>
@@ -221,17 +221,17 @@ export default function WelcomePage({
 
           {/* 最近打开 */}
           <section>
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-sm font-medium text-muted-foreground">
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-muted-foreground text-sm font-medium">
                 最近打开
               </h2>
               {recentMenus.length > 0 && (
                 <button
                   onClick={handleClearRecent}
-                  className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1"
+                  className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs transition-colors"
                   title="清除历史记录"
                 >
-                  <History className="w-3 h-3" />
+                  <History className="h-3 w-3" />
                   清除记录
                 </button>
               )}
@@ -239,22 +239,22 @@ export default function WelcomePage({
 
             {recentMenus.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-12 text-center">
-                <div className="w-16 h-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
-                  <Clock className="w-8 h-8 text-muted-foreground/50" />
+                <div className="bg-muted/50 mb-4 flex h-16 w-16 items-center justify-center rounded-full">
+                  <Clock className="text-muted-foreground/50 h-8 w-8" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-1">
+                <p className="text-muted-foreground mb-1 text-sm">
                   暂无最近打开的项目
                 </p>
-                <p className="text-xs text-muted-foreground/60 mb-4">
+                <p className="text-muted-foreground/60 mb-4 text-xs">
                   开始创建或导入菜单配置文件
                 </p>
                 <div className="flex gap-2">
                   <Button variant="default" size="sm" onClick={onCreateBlank}>
-                    <Plus className="w-4 h-4 mr-1.5" />
+                    <Plus className="mr-1.5 h-4 w-4" />
                     新建菜单
                   </Button>
                   <Button variant="outline" size="sm" onClick={onImportMenu}>
-                    <FileUp className="w-4 h-4 mr-1.5" />
+                    <FileUp className="mr-1.5 h-4 w-4" />
                     导入配置
                   </Button>
                 </div>
@@ -265,32 +265,32 @@ export default function WelcomePage({
                   <button
                     key={menu.id}
                     onClick={() => handleOpenRecentMenu(menu.id)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-left bg-card border hover:bg-accent hover:border-accent-foreground/20 rounded-lg transition-all group"
+                    className="bg-card hover:bg-accent hover:border-accent-foreground/20 group flex w-full items-center justify-between rounded-lg border px-4 py-3 text-left transition-all"
                   >
-                    <div className="flex items-center gap-3 min-w-0 flex-1">
-                      <div className="w-8 h-8 rounded bg-primary/10 flex items-center justify-center shrink-0">
-                        <FileText className="w-4 h-4 text-primary" />
+                    <div className="flex min-w-0 flex-1 items-center gap-3">
+                      <div className="bg-primary/10 flex h-8 w-8 shrink-0 items-center justify-center rounded">
+                        <FileText className="text-primary h-4 w-4" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2 mb-0.5">
+                        <div className="mb-0.5 flex items-center gap-2">
                           <span className="text-sm font-medium">
                             {menu.name}
                           </span>
                           {menu.groupName && (
-                            <span className="inline-flex items-center gap-1 px-1.5 py-0.5 text-xs bg-muted rounded">
-                              <Folder className="w-3 h-3" />
+                            <span className="bg-muted inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs">
+                              <Folder className="h-3 w-3" />
                               {menu.groupName}
                             </span>
                           )}
                         </div>
-                        <div className="text-xs text-muted-foreground flex items-center gap-2">
+                        <div className="text-muted-foreground flex items-center gap-2 text-xs">
                           <span className="shrink-0">{menu.itemCount} 项</span>
                           <span className="shrink-0">·</span>
                           <span className="shrink-0">{menu.lastOpened}</span>
                         </div>
                       </div>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 ml-2" />
+                    <ChevronRight className="text-muted-foreground ml-2 h-4 w-4 shrink-0 opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 ))}
               </div>
@@ -299,29 +299,29 @@ export default function WelcomePage({
 
           {/* 学习资源 */}
           <section>
-            <h2 className="text-sm font-medium mb-4 text-muted-foreground">
+            <h2 className="text-muted-foreground mb-4 text-sm font-medium">
               学习与帮助
             </h2>
             <div className="grid grid-cols-3 gap-3">
               <a
                 href="#"
-                className="flex flex-col items-center justify-center p-4 text-center bg-card border rounded-lg hover:bg-accent hover:border-accent-foreground/20 transition-all group"
+                className="bg-card hover:bg-accent hover:border-accent-foreground/20 group flex flex-col items-center justify-center rounded-lg border p-4 text-center transition-all"
               >
-                <BookOpen className="w-5 h-5 text-muted-foreground mb-2 group-hover:text-foreground transition-colors" />
+                <BookOpen className="text-muted-foreground group-hover:text-foreground mb-2 h-5 w-5 transition-colors" />
                 <span className="text-sm font-medium">查看文档</span>
               </a>
               <a
                 href="#"
-                className="flex flex-col items-center justify-center p-4 text-center bg-card border rounded-lg hover:bg-accent hover:border-accent-foreground/20 transition-all group"
+                className="bg-card hover:bg-accent hover:border-accent-foreground/20 group flex flex-col items-center justify-center rounded-lg border p-4 text-center transition-all"
               >
-                <Github className="w-5 h-5 text-muted-foreground mb-2 group-hover:text-foreground transition-colors" />
+                <Github className="text-muted-foreground group-hover:text-foreground mb-2 h-5 w-5 transition-colors" />
                 <span className="text-sm font-medium">GitHub</span>
               </a>
               <a
                 href="#"
-                className="flex flex-col items-center justify-center p-4 text-center bg-card border rounded-lg hover:bg-accent hover:border-accent-foreground/20 transition-all group"
+                className="bg-card hover:bg-accent hover:border-accent-foreground/20 group flex flex-col items-center justify-center rounded-lg border p-4 text-center transition-all"
               >
-                <MessageCircle className="w-5 h-5 text-muted-foreground mb-2 group-hover:text-foreground transition-colors" />
+                <MessageCircle className="text-muted-foreground group-hover:text-foreground mb-2 h-5 w-5 transition-colors" />
                 <span className="text-sm font-medium">反馈</span>
               </a>
             </div>
@@ -330,11 +330,11 @@ export default function WelcomePage({
       </div>
 
       {/* 右侧信息面板 */}
-      <div className="w-72 border-l overflow-auto">
-        <div className="p-6 space-y-6">
+      <div className="w-72 overflow-auto border-l">
+        <div className="space-y-6 p-6">
           {/* 快速开始 */}
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
               快速开始
             </h3>
             <div className="space-y-2">
@@ -343,7 +343,7 @@ export default function WelcomePage({
                 className="w-full justify-start"
                 size="sm"
               >
-                <Plus className="w-4 h-4 mr-2" />
+                <Plus className="mr-2 h-4 w-4" />
                 创建空白菜单
               </Button>
               <Button
@@ -352,7 +352,7 @@ export default function WelcomePage({
                 className="w-full justify-start"
                 size="sm"
               >
-                <FileUp className="w-4 h-4 mr-2" />
+                <FileUp className="mr-2 h-4 w-4" />
                 导入现有配置
               </Button>
             </div>
@@ -360,40 +360,40 @@ export default function WelcomePage({
 
           {/* 常用链接 */}
           <div>
-            <h3 className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3">
+            <h3 className="text-muted-foreground mb-3 text-xs font-medium tracking-wider uppercase">
               资源链接
             </h3>
             <div className="space-y-1.5">
               <a
                 href="#"
-                className="flex items-center gap-2 px-2 py-1.5 text-xs hover:bg-accent rounded transition-colors group"
+                className="hover:bg-accent group flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors"
               >
-                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                <ExternalLink className="text-muted-foreground h-3 w-3" />
                 <span className="flex-1">TrMenu 官方文档</span>
               </a>
               <a
                 href="#"
-                className="flex items-center gap-2 px-2 py-1.5 text-xs hover:bg-accent rounded transition-colors group"
+                className="hover:bg-accent group flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors"
               >
-                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                <ExternalLink className="text-muted-foreground h-3 w-3" />
                 <span className="flex-1">示例配置</span>
               </a>
               <a
                 href="#"
-                className="flex items-center gap-2 px-2 py-1.5 text-xs hover:bg-accent rounded transition-colors group"
+                className="hover:bg-accent group flex items-center gap-2 rounded px-2 py-1.5 text-xs transition-colors"
               >
-                <ExternalLink className="w-3 h-3 text-muted-foreground" />
+                <ExternalLink className="text-muted-foreground h-3 w-3" />
                 <span className="flex-1">社区讨论</span>
               </a>
             </div>
           </div>
 
           {/* 提示 */}
-          <div className="p-3 bg-muted/50 rounded-lg">
+          <div className="bg-muted/50 rounded-lg p-3">
             <div className="flex items-start gap-2">
-              <Sparkles className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-              <div className="text-xs text-muted-foreground">
-                <p className="font-medium text-foreground mb-1">小提示</p>
+              <Sparkles className="text-primary mt-0.5 h-4 w-4 shrink-0" />
+              <div className="text-muted-foreground text-xs">
+                <p className="text-foreground mb-1 font-medium">小提示</p>
                 <p>使用快捷键 Ctrl+N 快速创建新菜单</p>
               </div>
             </div>

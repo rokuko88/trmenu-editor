@@ -9,27 +9,27 @@ interface MenuItemDisplayProps {
 
 export function MenuItemDisplay({ item }: MenuItemDisplayProps) {
   return (
-    <div className="w-full h-full flex flex-col items-center justify-center p-2">
+    <div className="flex h-full w-full flex-col items-center justify-center p-2">
       {/* 物品图标 */}
       <div className="flex items-center justify-center">
-        <Box strokeWidth={3} className="h-4 w-4 text-foreground/70" />
+        <Box strokeWidth={3} className="text-foreground/70 h-4 w-4" />
       </div>
 
       {/* 物品材质名称（简短显示） */}
-      <div className="text-[9px] text-muted-foreground font-mono mt-1 truncate max-w-full">
+      <div className="text-muted-foreground mt-1 max-w-full truncate font-mono text-[9px]">
         {getShortMaterial(item.material)}
       </div>
 
       {/* 物品数量 */}
       {item.amount && item.amount > 1 && (
-        <span className="absolute bottom-1 right-1 text-[10px] font-medium text-foreground/80 bg-background/80 rounded px-1 leading-none">
+        <span className="text-foreground/80 bg-background/80 absolute right-1 bottom-1 rounded px-1 text-[10px] leading-none font-medium">
           {item.amount}
         </span>
       )}
 
       {/* 自定义模型数据标识 */}
       {item.customModelData && (
-        <span className="absolute top-1 right-1 text-[9px] text-muted-foreground/70 bg-background/80 rounded px-1 leading-none font-mono">
+        <span className="text-muted-foreground/70 bg-background/80 absolute top-1 right-1 rounded px-1 font-mono text-[9px] leading-none">
           #{item.customModelData}
         </span>
       )}

@@ -78,7 +78,7 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
       <div
         ref={panelRef}
         className={cn(
-          "border-l overflow-hidden shrink-0 relative",
+          "relative shrink-0 overflow-hidden border-l",
           isResizing ? "transition-none" : "transition-all duration-300"
         )}
         style={{ width: isExpanded ? `${panelWidth}px` : "0px" }}
@@ -87,32 +87,32 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
         {isExpanded && (
           <div
             className={cn(
-              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize transition-colors group z-10",
+              "group absolute top-0 bottom-0 left-0 z-10 w-1 cursor-col-resize transition-colors",
               isResizing ? "bg-primary/70" : "hover:bg-primary/50"
             )}
             onMouseDown={() => setIsResizing(true)}
           >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary/30" />
+            <div className="group-hover:bg-primary/30 absolute top-0 bottom-0 left-0 w-1 bg-transparent" />
           </div>
         )}
 
         {activePlugin && (
           <div
-            className="flex flex-col h-full bg-background/50 backdrop-blur-sm"
+            className="bg-background/50 flex h-full flex-col backdrop-blur-sm"
             style={{ width: `${panelWidth}px` }}
           >
             {/* 插件头部 - 固定 Layout */}
-            <div className="shrink-0 border-b bg-background/80">
+            <div className="bg-background/80 shrink-0 border-b">
               <div className="flex items-center justify-between p-3">
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="h-8 w-8 rounded-lg bg-linear-to-br from-blue-500 to-purple-500 flex items-center justify-center shrink-0 shadow-sm">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-linear-to-br from-blue-500 to-purple-500 shadow-sm">
                     <activePlugin.icon className="h-4 w-4 text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <h3 className="font-semibold text-sm truncate">
+                    <h3 className="truncate text-sm font-semibold">
                       {activePlugin.name}
                     </h3>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-muted-foreground truncate text-xs">
                       {activePlugin.description}
                     </p>
                   </div>
@@ -147,7 +147,7 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
       </div>
 
       {/* 插件按钮列表 - 始终可见 */}
-      <div className="flex flex-col border-l shrink-0 bg-background/30">
+      <div className="bg-background/30 flex shrink-0 flex-col border-l">
         <ScrollArea className="flex-1">
           <div className="flex flex-col">
             {plugins.map((plugin) => (
@@ -161,7 +161,7 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
                           : "ghost"
                       }
                       size="icon"
-                      className="h-12 w-12 rounded-none hover:bg-accent/50 transition-colors"
+                      className="hover:bg-accent/50 h-12 w-12 rounded-none transition-colors"
                       onClick={() => handlePluginClick(plugin.id)}
                     >
                       <plugin.icon className="h-4 w-4" />
@@ -170,7 +170,7 @@ export function PluginPanel({ plugins, pluginProps }: PluginPanelProps) {
                   <TooltipContent side="left">
                     <div className="space-y-1">
                       <p className="font-medium">{plugin.name}</p>
-                      <p className="text-xs text-muted-foreground">
+                      <p className="text-muted-foreground text-xs">
                         {plugin.description}
                       </p>
                     </div>

@@ -186,7 +186,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
               >
-                <div className="flex aspect-square size-8 items-center justify-center overflow-hidden bg-white dark:bg-slate-800 rounded-md group-data-[collapsible=icon]:mx-0">
+                <div className="flex aspect-square size-8 items-center justify-center overflow-hidden rounded-md bg-white group-data-[collapsible=icon]:mx-0 dark:bg-slate-800">
                   <Image
                     src={getAssetPath("/image.png")}
                     alt="TrMenu Logo"
@@ -199,7 +199,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 </div>
                 <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                   <span className="truncate font-semibold">TrMenu Editor</span>
-                  <span className="truncate text-xs text-muted-foreground">
+                  <span className="text-muted-foreground truncate text-xs">
                     可视化菜单编辑器
                   </span>
                 </div>
@@ -215,7 +215,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           {/* 菜单列表 */}
           <ContextMenu modal={false}>
             <ContextMenuTrigger asChild>
-              <SidebarGroup className="group-data-[collapsible=icon]:hidden py-0 flex-1">
+              <SidebarGroup className="flex-1 py-0 group-data-[collapsible=icon]:hidden">
                 <MenuListHeader
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}

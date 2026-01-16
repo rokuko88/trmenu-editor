@@ -104,7 +104,7 @@ export function PropertiesPanel({
       <div
         ref={panelRef}
         className={cn(
-          "border-l flex flex-col overflow-hidden relative",
+          "relative flex flex-col overflow-hidden border-l",
           isResizing ? "transition-none" : "transition-all duration-300"
         )}
         style={{ width: isCollapsed ? "0px" : `${panelWidth}px` }}
@@ -113,12 +113,12 @@ export function PropertiesPanel({
         {!isCollapsed && (
           <div
             className={cn(
-              "absolute left-0 top-0 bottom-0 w-1 cursor-col-resize transition-colors group z-10",
+              "group absolute top-0 bottom-0 left-0 z-10 w-1 cursor-col-resize transition-colors",
               isResizing ? "bg-primary/70" : "hover:bg-primary/50"
             )}
             onMouseDown={() => setIsResizing(true)}
           >
-            <div className="absolute left-0 top-0 bottom-0 w-1 bg-transparent group-hover:bg-primary/30" />
+            <div className="group-hover:bg-primary/30 absolute top-0 bottom-0 left-0 w-1 bg-transparent" />
           </div>
         )}
 
@@ -131,7 +131,7 @@ export function PropertiesPanel({
                   <BreadcrumbPage className="text-sm">菜单</BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink
-                    className="text-sm cursor-pointer"
+                    className="cursor-pointer text-sm"
                     onClick={() => {
                       setPanelView("menu");
                       onSelectItem(null); // 取消选中物品
@@ -156,7 +156,7 @@ export function PropertiesPanel({
         </div>
 
         <ScrollArea className="flex-1">
-          <div className="p-4 space-y-4">
+          <div className="space-y-4 p-4">
             {/* 根据视图显示不同内容 */}
             {panelView === "slot" && selectedItem ? (
               <ItemProperties
@@ -175,7 +175,7 @@ export function PropertiesPanel({
       <Button
         variant="ghost"
         size="icon"
-        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full h-10 w-5 rounded-r-none rounded-l-sm border border-r-0 bg-background hover:bg-accent z-20 shadow-sm"
+        className="bg-background hover:bg-accent absolute top-1/2 left-0 z-20 h-10 w-5 -translate-x-full -translate-y-1/2 rounded-l-sm rounded-r-none border border-r-0 shadow-sm"
         onClick={togglePanel}
         title={isCollapsed ? "展开属性面板" : "折叠属性面板"}
       >
@@ -377,7 +377,7 @@ function ItemProperties({
     <div className="space-y-3">
       {/* 材质 */}
       <div className="space-y-2">
-        <Label htmlFor="item-material" className="text-sm ">
+        <Label htmlFor="item-material" className="text-sm">
           材质
         </Label>
         <Input
@@ -391,7 +391,7 @@ function ItemProperties({
 
       {/* 显示名称 */}
       <div className="space-y-2">
-        <Label htmlFor="item-display-name" className="text-sm ">
+        <Label htmlFor="item-display-name" className="text-sm">
           显示名称
         </Label>
         <div className="flex gap-2">
@@ -407,8 +407,8 @@ function ItemProperties({
         </div>
         {/* 颜色预览 */}
         {item.displayName && hasMinecraftColors(item.displayName) && (
-          <div className="mt-2 p-2 rounded-md bg-muted/50 border text-sm">
-            <div className="text-xs text-muted-foreground mb-1">预览：</div>
+          <div className="bg-muted/50 mt-2 rounded-md border p-2 text-sm">
+            <div className="text-muted-foreground mb-1 text-xs">预览：</div>
             <div className="font-medium">
               {parseMinecraftText(item.displayName)}
             </div>
@@ -419,7 +419,7 @@ function ItemProperties({
       {/* 数量和槽位 */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <Label htmlFor="item-amount" className="text-sm ">
+          <Label htmlFor="item-amount" className="text-sm">
             数量
           </Label>
           <Input
@@ -433,7 +433,7 @@ function ItemProperties({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="item-slot" className="text-sm ">
+          <Label htmlFor="item-slot" className="text-sm">
             槽位
           </Label>
           <Input
@@ -448,7 +448,7 @@ function ItemProperties({
 
       {/* 自定义模型数据 */}
       <div className="space-y-2">
-        <Label htmlFor="item-custom-model" className="text-sm ">
+        <Label htmlFor="item-custom-model" className="text-sm">
           CustomModelData
         </Label>
         <Input
@@ -469,17 +469,17 @@ function ItemProperties({
 
       {/* Lore 描述 */}
       <div className="space-y-2">
-        <Label className="text-sm ">Lore</Label>
+        <Label className="text-sm">Lore</Label>
         <div className="space-y-2">
           {item.lore && item.lore.length > 0 && (
             <div className="space-y-1.5">
               {item.lore.map((line, index) => (
                 <div
                   key={index}
-                  className="flex items-start gap-2 group text-sm bg-muted/30 rounded px-3 py-2 hover:bg-muted/50 transition-colors"
+                  className="group bg-muted/30 hover:bg-muted/50 flex items-start gap-2 rounded px-3 py-2 text-sm transition-colors"
                 >
-                  <div className="flex-1 min-w-0">
-                    <div className="truncate text-xs text-muted-foreground font-mono mb-1">
+                  <div className="min-w-0 flex-1">
+                    <div className="text-muted-foreground mb-1 truncate font-mono text-xs">
                       {line}
                     </div>
                     {hasMinecraftColors(line) && (
@@ -489,7 +489,7 @@ function ItemProperties({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity shrink-0"
+                    className="h-7 w-7 shrink-0 opacity-0 transition-opacity group-hover:opacity-100"
                     onClick={() => handleRemoveLore(index)}
                   >
                     <Trash2 className="h-4 w-4" />
@@ -523,8 +523,8 @@ function ItemProperties({
           </div>
           {/* Lore 输入框预览 */}
           {loreInput && hasMinecraftColors(loreInput) && (
-            <div className="p-2 rounded-md bg-muted/50 border text-sm">
-              <div className="text-xs text-muted-foreground mb-1">预览：</div>
+            <div className="bg-muted/50 rounded-md border p-2 text-sm">
+              <div className="text-muted-foreground mb-1 text-xs">预览：</div>
               <div>{parseMinecraftText(loreInput)}</div>
             </div>
           )}
@@ -534,9 +534,9 @@ function ItemProperties({
       {/* 点击动作 */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label className="text-sm ">动作</Label>
+          <Label className="text-sm">动作</Label>
           {item.actions && item.actions.length > 0 && (
-            <span className="text-xs text-muted-foreground">
+            <span className="text-muted-foreground text-xs">
               {item.actions.length} 项
             </span>
           )}
@@ -556,7 +556,7 @@ function ItemProperties({
         className="w-full text-sm"
         onClick={onDelete}
       >
-        <Trash2 className="h-4 w-4 mr-2" />
+        <Trash2 className="mr-2 h-4 w-4" />
         删除物品
       </Button>
     </div>

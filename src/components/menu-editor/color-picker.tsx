@@ -91,7 +91,7 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
       </PopoverTrigger>
       <PopoverContent className="w-64" align="start">
         <div className="space-y-2">
-          <h4 className="font-medium text-sm">调色盘</h4>
+          <h4 className="text-sm font-medium">调色盘</h4>
 
           <Tabs defaultValue="colors" className="w-full">
             <TabsList className="grid w-full grid-cols-4">
@@ -118,12 +118,12 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                     variant="outline"
                     size="icon"
                     onClick={() => handleColorClick(color.code)}
-                    className="group relative aspect-square rounded-sm border-2 border-transparent hover:border-primary transition-colors overflow-hidden p-0 size-6"
+                    className="group hover:border-primary relative aspect-square size-6 overflow-hidden rounded-sm border-2 border-transparent p-0 transition-colors"
                     style={{ backgroundColor: color.color }}
                     title={`${color.name} (${color.code})`}
                   >
-                    <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <span className="text-white text-xs font-mono">
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+                      <span className="font-mono text-xs text-white">
                         {color.code}
                       </span>
                     </div>
@@ -141,17 +141,17 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                     variant="outline"
                     size="sm"
                     onClick={() => handleFormatClick(format.code)}
-                    className="h-16 flex flex-col items-center justify-center gap-1"
+                    className="flex h-16 flex-col items-center justify-center gap-1"
                     title={format.name}
                   >
-                    <span className={cn("text-lg font-mono", format.style)}>
+                    <span className={cn("font-mono text-lg", format.style)}>
                       {format.icon}
                     </span>
                     <span className="text-xs">{format.name}</span>
                   </Button>
                 ))}
               </div>
-              <div className="text-xs text-muted-foreground text-center pt-2">
+              <div className="text-muted-foreground pt-2 text-center text-xs">
                 点击按钮插入格式代码
               </div>
             </TabsContent>
@@ -191,7 +191,7 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                 <div className="space-y-2">
                   <Label className="text-xs">预览</Label>
                   <div
-                    className="h-12 rounded-md border flex items-center justify-center text-sm font-medium"
+                    className="flex h-12 items-center justify-center rounded-md border text-sm font-medium"
                     style={{ backgroundColor: hexColor }}
                   >
                     <span
@@ -215,7 +215,7 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                   应用颜色 (&#{hexColor.replace("#", "").toUpperCase()})
                 </Button>
 
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   <p>六进制颜色格式：&#RRGGBB</p>
                   <p className="mt-1">示例：&#FF5555 表示红色</p>
                 </div>
@@ -269,7 +269,7 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                 <div className="space-y-2">
                   <Label className="text-xs">预览</Label>
                   <div
-                    className="h-12 rounded-md border flex items-center justify-center text-lg font-medium"
+                    className="flex h-12 items-center justify-center rounded-md border text-lg font-medium"
                     style={{
                       background: `linear-gradient(to right, ${gradientStart}, ${gradientEnd})`,
                       WebkitBackgroundClip: "text",
@@ -290,7 +290,7 @@ export function ColorPicker({ children, onColorSelect }: ColorPickerProps) {
                   应用渐变
                 </Button>
 
-                <div className="text-xs text-muted-foreground">
+                <div className="text-muted-foreground text-xs">
                   <p>
                     渐变格式：
                     &lt;gradient:#起始色:#结束色&gt;文字&lt;/gradient&gt;

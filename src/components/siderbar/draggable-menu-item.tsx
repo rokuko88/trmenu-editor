@@ -150,12 +150,12 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
               </SidebarMenuButton>
 
               {/* 操作按钮组 */}
-              <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover/item:opacity-100 transition-opacity z-10">
+              <div className="absolute top-1/2 right-1 z-10 flex -translate-y-1/2 items-center gap-0.5 opacity-0 transition-opacity group-hover/item:opacity-100">
                 {/* 删除按钮 */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 shrink-0 hover:bg-destructive/10 hover:text-destructive"
+                  className="hover:bg-destructive/10 hover:text-destructive h-6 w-6 shrink-0"
                   onClick={(e) => {
                     e.stopPropagation();
                     handleDelete();

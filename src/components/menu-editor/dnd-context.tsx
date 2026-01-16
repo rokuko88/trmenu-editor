@@ -177,7 +177,7 @@ export function DndMenuProvider({
       const item = menuItems.find((i) => i.slot === slot);
       if (item) {
         return (
-          <div className="w-14 h-14 bg-card border-2 border-primary rounded-md shadow-2xl flex items-center justify-center scale-110 rotate-3 transition-transform">
+          <div className="bg-card border-primary flex h-14 w-14 scale-110 rotate-3 items-center justify-center rounded-md border-2 shadow-2xl transition-transform">
             <MenuItemDisplay item={item} />
           </div>
         );
@@ -196,7 +196,7 @@ export function DndMenuProvider({
 
     return (
       <div
-        className="bg-card/95 border-3 border-primary rounded-lg p-2 shadow-2xl backdrop-blur-sm rotate-2 scale-105 transition-all"
+        className="bg-card/95 border-primary scale-105 rotate-2 rounded-lg border-3 p-2 shadow-2xl backdrop-blur-sm transition-all"
         style={{
           display: "grid",
           gridTemplateColumns: `repeat(${previewCols}, 56px)`,
@@ -218,8 +218,8 @@ export function DndMenuProvider({
                 "relative rounded-md transition-all",
                 isSelected
                   ? item
-                    ? "bg-background border-2 border-border shadow-sm"
-                    : "bg-primary/25 border-2 border-dashed border-primary/50"
+                    ? "bg-background border-border border-2 shadow-sm"
+                    : "bg-primary/25 border-primary/50 border-2 border-dashed"
                   : "bg-transparent opacity-20"
               )}
             >
@@ -233,7 +233,7 @@ export function DndMenuProvider({
         })}
 
         {/* 数量徽章 */}
-        <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground text-xs font-bold px-2 py-1 rounded-full shadow-lg">
+        <div className="bg-primary text-primary-foreground absolute -top-2 -right-2 rounded-full px-2 py-1 text-xs font-bold shadow-lg">
           {draggedSlots.size}
         </div>
       </div>
