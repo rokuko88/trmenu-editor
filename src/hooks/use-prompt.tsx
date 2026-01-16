@@ -94,49 +94,46 @@ export function usePrompt() {
     [handleConfirm, handleCancel]
   );
 
-  const PromptDialog = useCallback(
-    () => (
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{options.title}</DialogTitle>
-            {options.description && (
-              <DialogDescription>{options.description}</DialogDescription>
-            )}
-          </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="prompt-input">
-                {options.description || "请输入内容"}
-                {options.required && (
-                  <span className="text-destructive ml-1">*</span>
-                )}
-              </Label>
-              <Input
-                id="prompt-input"
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder={options.placeholder}
-                autoFocus
-              />
-            </div>
+  const PromptDialog = (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{options.title}</DialogTitle>
+          {options.description && (
+            <DialogDescription>{options.description}</DialogDescription>
+          )}
+        </DialogHeader>
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="prompt-input">
+              {options.description || "请输入内容"}
+              {options.required && (
+                <span className="text-destructive ml-1">*</span>
+              )}
+            </Label>
+            <Input
+              id="prompt-input"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={options.placeholder}
+              autoFocus
+            />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={handleCancel}>
-              {options.cancelText}
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={options.required && !inputValue.trim()}
-            >
-              {options.confirmText}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    ),
-    [isOpen, inputValue, options, handleConfirm, handleCancel, handleKeyDown]
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={handleCancel}>
+            {options.cancelText}
+          </Button>
+          <Button
+            onClick={handleConfirm}
+            disabled={options.required && !inputValue.trim()}
+          >
+            {options.confirmText}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 
   return { prompt, PromptDialog };

@@ -239,7 +239,7 @@ export function ColorSchemePlugin({ onItemCreate }: PluginComponentProps) {
       </ScrollArea>
 
       {/* Modal Dialog */}
-      <ConfirmDialog />
+      {ConfirmDialog}
     </>
   );
 }

@@ -382,8 +382,8 @@ export function ItemAssetsPlugin({
       </div>
 
       {/* Modal Dialogs */}
-      <ConfirmDialog />
-      <PromptDialog />
+      {ConfirmDialog}
+      {PromptDialog}
     </div>
   );
 }

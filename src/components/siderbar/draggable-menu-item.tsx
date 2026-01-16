@@ -145,8 +145,8 @@ export function DraggableMenuItem({ menu }: DraggableMenuItemProps) {
       </SidebarMenuItem>
 
       {/* Modal Dialogs */}
-      <ConfirmDialog />
-      <PromptDialog />
+      {ConfirmDialog}
+      {PromptDialog}
     </div>
   );
 }

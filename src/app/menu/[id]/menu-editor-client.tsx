@@ -518,8 +518,8 @@ export default function MenuEditorClient() {
       </div>
 
       {/* Modal Dialogs */}
-      <ConfirmDialog />
-      <PromptDialog />
+      {ConfirmDialog}
+      {PromptDialog}
     </SidebarInset>
   );
 }

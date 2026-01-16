@@ -163,7 +163,7 @@ export function ActionEditor({ actions, onUpdate }: ActionEditorProps) {
       )}
 
       {/* Modal Dialog */}
-      <ConfirmDialog />
+      {ConfirmDialog}
     </div>
   );
 }

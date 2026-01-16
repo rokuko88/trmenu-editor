@@ -62,35 +62,30 @@ export function useConfirm() {
     setResolvePromise(null);
   }, [resolvePromise]);
 
-  const ConfirmDialog = useCallback(
-    () => (
-      <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{options.title}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {options.description}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCancel}>
-              {options.cancelText}
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirm}
-              className={
-                options.variant === "destructive"
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  : ""
-              }
-            >
-              {options.confirmText}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    ),
-    [isOpen, options, handleConfirm, handleCancel]
+  const ConfirmDialog = (
+    <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{options.title}</AlertDialogTitle>
+          <AlertDialogDescription>{options.description}</AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel onClick={handleCancel}>
+            {options.cancelText}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            onClick={handleConfirm}
+            className={
+              options.variant === "destructive"
+                ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                : ""
+            }
+          >
+            {options.confirmText}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 
   return { confirm, ConfirmDialog };

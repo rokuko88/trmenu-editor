@@ -102,7 +102,7 @@ export function DraggableMenuGroup({
   // 处理删除组
   const handleDeleteGroup = async () => {
     const groupMenuCount = menus.length;
-    
+
     const shouldDelete = await confirm({
       title: "删除菜单组",
       description:
@@ -201,8 +201,8 @@ export function DraggableMenuGroup({
       </Collapsible>
 
       {/* Modal Dialogs */}
-      <ConfirmDialog />
-      <PromptDialog />
+      {ConfirmDialog}
+      {PromptDialog}
     </div>
   );
 }
