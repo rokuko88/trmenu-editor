@@ -82,31 +82,123 @@ export function MenuCanvas({
   const [isResizingMenu, setIsResizingMenu] = useState(false);
   const [previewRows, setPreviewRows] = useState<number | null>(null);
   const [canvasScale, setCanvasScale] = useState(1);
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const canvasContentRef = useRef<HTMLDivElement>(null);
+  const lastMouseRef = useRef<{ x: number; y: number } | null>(null);
+  const isMouseInsideRef = useRef(false);
   const resizeStartRef = useRef<{ y: number; initialRows: number } | null>(
     null
   );
+  const panStartRef = useRef<{
+    x: number;
+    y: number;
+    offsetX: number;
+    offsetY: number;
+  } | null>(null);
+  const isPanningRef = useRef(false);
 
   const clampZoom = useCallback((value: number) => {
     const clamped = Math.min(MAX_CANVAS_ZOOM, Math.max(MIN_CANVAS_ZOOM, value));
     return Number(clamped.toFixed(2));
   }, []);
 
+  const getCanvasPadding = useCallback((canvas: HTMLDivElement) => {
+    const style = window.getComputedStyle(canvas);
+    return {
+      left: Number.parseFloat(style.paddingLeft) || 0,
+      top: Number.parseFloat(style.paddingTop) || 0,
+      right: Number.parseFloat(style.paddingRight) || 0,
+      bottom: Number.parseFloat(style.paddingBottom) || 0,
+    };
+  }, []);
+
+  const getCanvasPointFromClient = useCallback(
+    (clientX: number, clientY: number) => {
+      const canvas = canvasRef.current;
+      if (!canvas) return null;
+      const rect = canvas.getBoundingClientRect();
+      const padding = getCanvasPadding(canvas);
+      return {
+        x: clientX - rect.left - padding.left,
+        y: clientY - rect.top - padding.top,
+      };
+    },
+    [getCanvasPadding]
+  );
+
+  const getCanvasCenterPoint = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    const padding = getCanvasPadding(canvas);
+    const width = rect.width - padding.left - padding.right;
+    const height = rect.height - padding.top - padding.bottom;
+    return { x: width / 2, y: height / 2 };
+  }, [getCanvasPadding]);
+
+  const zoomBy = useCallback(
+    (delta: number, anchor?: { x: number; y: number } | null) => {
+      setCanvasScale((prevScale) => {
+        const nextScale = clampZoom(prevScale + delta);
+        if (nextScale === prevScale) return prevScale;
+
+        setCanvasOffset((prevOffset) => {
+          const content = canvasContentRef.current;
+          if (!content) return prevOffset;
+          const point = anchor ?? getCanvasCenterPoint();
+          if (!point) return prevOffset;
+
+          const base = {
+            x: content.offsetLeft,
+            y: content.offsetTop,
+          };
+          const origin = {
+            x: content.offsetWidth / 2,
+            y: 0,
+          };
+          const scaleRatio = nextScale / prevScale;
+          const dx = point.x - base.x - origin.x - prevOffset.x;
+          const dy = point.y - base.y - origin.y - prevOffset.y;
+
+          return {
+            x: point.x - base.x - origin.x - dx * scaleRatio,
+            y: point.y - base.y - origin.y - dy * scaleRatio,
+          };
+        });
+
+        return nextScale;
+      });
+    },
+    [clampZoom, getCanvasCenterPoint]
+  );
+
   const handleZoomIn = useCallback(() => {
-    setCanvasScale((prev) => clampZoom(prev + CANVAS_ZOOM_STEP));
-  }, [clampZoom]);
+    const anchor =
+      isMouseInsideRef.current && lastMouseRef.current
+        ? lastMouseRef.current
+        : getCanvasCenterPoint();
+    zoomBy(CANVAS_ZOOM_STEP, anchor);
+  }, [getCanvasCenterPoint, zoomBy]);
 
   const handleZoomOut = useCallback(() => {
-    setCanvasScale((prev) => clampZoom(prev - CANVAS_ZOOM_STEP));
-  }, [clampZoom]);
+    const anchor =
+      isMouseInsideRef.current && lastMouseRef.current
+        ? lastMouseRef.current
+        : getCanvasCenterPoint();
+    zoomBy(-CANVAS_ZOOM_STEP, anchor);
+  }, [getCanvasCenterPoint, zoomBy]);
 
   const handleCanvasWheel = useCallback(
     (e: React.WheelEvent<HTMLDivElement>) => {
       if (viewMode !== "visual") return;
       e.preventDefault();
       const direction = e.deltaY < 0 ? 1 : -1;
-      setCanvasScale((prev) => clampZoom(prev + direction * CANVAS_ZOOM_STEP));
+      const anchor = getCanvasPointFromClient(e.clientX, e.clientY);
+      zoomBy(direction * CANVAS_ZOOM_STEP, anchor);
     },
-    [viewMode, clampZoom]
+    [viewMode, getCanvasPointFromClient, zoomBy]
   );
 
   // 获取当前页码
@@ -138,28 +230,83 @@ export function MenuCanvas({
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent<HTMLDivElement>) => {
       const target = e.target as HTMLElement;
+      const isInsideMenu = containerRef.current?.contains(target);
 
-      // 检查是否点击在菜单容器外（空白区域）
-      // 只有点击画布背景本身时才取消选中
-      const isCanvasBackground = target === e.currentTarget;
-      const isInsideInventoryContainer = containerRef.current?.contains(target);
+      if (!isInsideMenu) {
+        const isInteractive = Boolean(
+          target.closest("button, [role='button'], input, select, textarea, a")
+        );
 
-      // 如果点击在画布空白区域（不在物品栏容器内）
-      if (
-        isCanvasBackground ||
-        (!isInsideInventoryContainer && !target.closest("[data-slot]"))
-      ) {
-        // 取消单个物品选中
-        onSelectItem(null);
-        // 取消选区
-        clearSelection();
+        if (!isInteractive) {
+          if (e.button === 0) {
+            e.preventDefault();
+            panStartRef.current = {
+              x: e.clientX,
+              y: e.clientY,
+              offsetX: canvasOffset.x,
+              offsetY: canvasOffset.y,
+            };
+            isPanningRef.current = true;
+            setIsPanning(true);
+          }
+          onSelectItem(null);
+          clearSelection();
+        }
+
+        return;
       }
 
-      // 调用框选的 mouseDown 处理
       handleMouseDown(e);
     },
-    [handleMouseDown, onSelectItem, clearSelection, containerRef]
+    [handleMouseDown, onSelectItem, clearSelection, containerRef, canvasOffset]
   );
+
+  const handleCanvasMouseMove = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const point = getCanvasPointFromClient(e.clientX, e.clientY);
+      if (point) lastMouseRef.current = point;
+    },
+    [getCanvasPointFromClient]
+  );
+
+  const handleCanvasMouseEnter = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      isMouseInsideRef.current = true;
+      const point = getCanvasPointFromClient(e.clientX, e.clientY);
+      if (point) lastMouseRef.current = point;
+    },
+    [getCanvasPointFromClient]
+  );
+
+  const handleCanvasMouseLeave = useCallback(() => {
+    isMouseInsideRef.current = false;
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isPanningRef.current || !panStartRef.current) return;
+      const deltaX = e.clientX - panStartRef.current.x;
+      const deltaY = e.clientY - panStartRef.current.y;
+      setCanvasOffset({
+        x: panStartRef.current.offsetX + deltaX,
+        y: panStartRef.current.offsetY + deltaY,
+      });
+    };
+
+    const handleMouseUp = () => {
+      if (!isPanningRef.current) return;
+      isPanningRef.current = false;
+      panStartRef.current = null;
+      setIsPanning(false);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+    window.addEventListener("mouseup", handleMouseUp);
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, []);
 
   // 计算行数和列数（提前计算，供后续使用）
   const rows = menu.size / 9;
@@ -655,6 +802,10 @@ export function MenuCanvas({
             className="relative flex flex-1 flex-col items-center justify-center p-8 select-none"
             onMouseDown={handleCanvasMouseDown}
             onWheel={handleCanvasWheel}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseEnter={handleCanvasMouseEnter}
+            onMouseLeave={handleCanvasMouseLeave}
+            ref={canvasRef}
             style={{
               ...(showGrid && {
                 backgroundImage:
@@ -665,9 +816,13 @@ export function MenuCanvas({
             }}
           >
             <div
-              className="pointer-events-none relative z-10 w-full max-w-xl space-y-4 transition-transform"
+              className={cn(
+                "pointer-events-none relative z-10 w-full max-w-xl space-y-4",
+                !isPanning && "transition-transform"
+              )}
+              ref={canvasContentRef}
               style={{
-                transform: `scale(${canvasScale})`,
+                transform: `translate(${canvasOffset.x}px, ${canvasOffset.y}px) scale(${canvasScale})`,
                 transformOrigin: "top center",
               }}
             >

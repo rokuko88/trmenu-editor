@@ -110,7 +110,7 @@ export function PropertiesPanel({
       <div
         ref={panelRef}
         className={cn(
-          "relative flex h-full flex-col overflow-hidden border-l",
+          "bg-background/20 relative flex h-full flex-col overflow-hidden border-l backdrop-blur-md",
           isResizing ? "transition-none" : "transition-all duration-300"
         )}
         style={{ width: isCollapsed ? "0px" : `${panelWidth}px` }}

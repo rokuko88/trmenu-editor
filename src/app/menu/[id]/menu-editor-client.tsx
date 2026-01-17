@@ -492,7 +492,7 @@ export default function MenuEditorClient() {
         />
 
         {/* 编辑器内容区 */}
-        <div className="flex flex-1 overflow-hidden">
+        <div className="z-0 flex flex-1 overflow-hidden">
           {/* 左侧：菜单画布 */}
           <MenuCanvas
             menu={currentMenu}
@@ -511,7 +511,7 @@ export default function MenuEditorClient() {
           />
 
           {/* 右侧面板容器 */}
-          <div className="relative flex h-full shrink-0">
+          <div className="relative z-20 flex h-full shrink-0">
             {/* 属性面板 */}
             <PropertiesPanel
               menu={currentMenu}
